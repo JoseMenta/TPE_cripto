@@ -2,9 +2,13 @@ package org.example.data;
 
 import lombok.Getter;
 
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 
 @Getter
@@ -28,7 +32,9 @@ public class Payload {
     }
 
     public byte[] getExtensionBinary(){
-        
+        return this.extension.map(e ->
+                Arrays.copyOf(e.getBytes(StandardCharsets.US_ASCII),e.length()+1) //add 0 byte
+        ).orElse(new byte[0]);
     }
 
     public void setSize(byte[] sizeBinary){
@@ -44,7 +50,15 @@ public class Payload {
     public byte[] getBinary(){
         //Joins the info in a byte array
         byte[] size = getSizeBinary();
-        byte[] extension =
+        byte[] extension = getExtensionBinary();
+        byte[] ans = new byte[size.length + this.content.length + extension.length];
+        int curr = 0;
+        System.arraycopy(size,0,ans,0,size.length);
+        curr += size.length;
+        System.arraycopy(this.content,0,ans,curr,this.content.length);
+        curr += this.content.length;
+        System.arraycopy(extension,0,ans,curr,extension.length);
+        return ans;
     }
 
 
