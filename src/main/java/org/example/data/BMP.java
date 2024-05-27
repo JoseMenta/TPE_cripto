@@ -8,7 +8,7 @@ import java.util.Arrays;
 public class BMP
 {
       private final int size;
-      private final byte[] data;
+      private byte[] data;
       private final byte[] header;
 
     public BMP (byte [] bmp){
@@ -21,6 +21,7 @@ public class BMP
         this.data = Arrays.copyOfRange(bmp,offset,size - offset);
     }
 
-
-
+    public void setData(byte[] data) {
+        this.data = data;
+    }
 }
