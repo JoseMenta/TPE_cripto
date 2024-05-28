@@ -1,6 +1,7 @@
 package org.example.data;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Arrays;
 
@@ -8,6 +9,7 @@ import java.util.Arrays;
 public class BMP
 {
       private final int size;
+      @Setter
       private byte[] data;
       private final byte[] header;
 
@@ -21,7 +23,10 @@ public class BMP
         this.data = Arrays.copyOfRange(bmp,offset,size - offset);
     }
 
-    public void setData(byte[] data) {
+    public BMP (int size, byte [] data, byte[] header){
+        this.size =  size;
         this.data = data;
+        this.header = header;
     }
+
 }

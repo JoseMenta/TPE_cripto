@@ -1,6 +1,7 @@
 package org.example.data;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
@@ -14,8 +15,14 @@ import java.util.stream.Stream;
 @Getter
 public class Payload {
     private int size;
+
+    @Setter
     private byte[] content;
     private Optional<String> extension;
+
+    public Payload() {
+        extension = Optional.empty();
+    }
 
     public Payload(int size, byte[] content, Optional<String> extension) {
         this.size = size;
@@ -40,6 +47,10 @@ public class Payload {
     public void setSize(byte[] sizeBinary){
         ByteBuffer buffer = ByteBuffer.wrap(sizeBinary);
         this.size = buffer.getInt();
+    }
+
+    public void setExtension(String extension) {
+        this.extension = Optional.ofNullable(extension);
     }
 
     public int getTotalLength(){

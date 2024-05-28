@@ -16,6 +16,7 @@ public class LSB1 implements Algorithm{
             int bitIndex = i % BYTE_SIZE;
             int byteIndex = i / BYTE_SIZE;
             byte targetByte = sizeArray[byteIndex];
+            //TODO: aca creo que el shift sería (targetByte >> (7-bitIndex)), porque el primer bit es el que se obtiene haciendo 7 shifts a la derecha
             int targetBit = (targetByte >> bitIndex) & 1;
             bmpData[i] = (byte) ((bmpData[i] & 0xFE) | targetBit);
         }
@@ -52,7 +53,7 @@ public class LSB1 implements Algorithm{
     }
 
     @Override
-    public Payload recover(BMP bmp) {
+    public Payload recover(BMP bmp,boolean withExtension) {
         return null;
     }
 }

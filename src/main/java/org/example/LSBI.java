@@ -10,7 +10,7 @@ public class LSBI implements Algorithm{
     }
 
     @Override
-    public Payload recover(BMP bmp) {
+    public Payload recover(BMP bmp,boolean withExtension) {
         return null;
     }
 }
