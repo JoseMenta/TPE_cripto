@@ -13,4 +13,9 @@ public class LSBI implements Algorithm{
     public Payload recover(BMP bmp,boolean withExtension) {
         return null;
     }
+
+    @Override
+    public int getMaxLength(BMP bmp) {
+        return 0;
+    }
 }
