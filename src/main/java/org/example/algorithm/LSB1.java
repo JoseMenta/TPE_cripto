@@ -2,17 +2,23 @@ package org.example.algorithm;
 
 import org.example.data.BMP;
 import org.example.data.Payload;
+import org.example.exceptions.InsuficientSizeException;
 
 public class LSB1 implements Algorithm{
     private static final int SIZE_BITS = 4 * 8;
     private static final int BYTE_SIZE = 8;
 
     @Override
+    public int getMaxLength(BMP bmp){
+        return bmp.getData().length / BYTE_SIZE;
+    }
+
+    @Override
     public BMP embed(BMP bmp, Payload payload) {
 
-//        if(getMaxLength(bmp) < payload.getTotalLength()){
-//            throw new InsuficientSizeException();
-//        }
+        if(getMaxLength(bmp) < payload.getTotalLength()){
+            throw new InsuficientSizeException();
+        }
 
         byte[] sizeArray = payload.getSizeBinary();
         byte[] bmpData = bmp.getData();

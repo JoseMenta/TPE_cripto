@@ -8,9 +8,7 @@ public interface Algorithm {
 
     Payload recover(BMP bmp, boolean withExtension);
 
-    int getMaxLength(BMP bmp){
-        return bmp.getData().length / LSB4_BYTES;
-    }
+    int getMaxLength(BMP bmp);
 }
 
 
