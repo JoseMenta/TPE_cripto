@@ -1,6 +1,7 @@
 package org.example.crypt;
 
 public class CryptTransformation {
+    private static final String NO_PADDING = "NoPadding";
 
     private CryptAlgorithm cryptAlgorithm;
     private CryptMode cryptMode;
@@ -11,6 +12,6 @@ public class CryptTransformation {
     }
 
     public String getTransformation() {
-        return cryptAlgorithm.getAlgorithm() + "/" + cryptMode.getMode();
+        return cryptAlgorithm.getAlgorithm() + "/" + cryptMode.getMode() + "/" + NO_PADDING;
     }
 }
