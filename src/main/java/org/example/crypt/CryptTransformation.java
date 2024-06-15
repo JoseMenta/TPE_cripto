@@ -3,8 +3,8 @@ package org.example.crypt;
 public class CryptTransformation {
     private static final String NO_PADDING = "NoPadding";
 
-    private CryptAlgorithm cryptAlgorithm;
-    private CryptMode cryptMode;
+    private final CryptAlgorithm cryptAlgorithm;
+    private final CryptMode cryptMode;
 
     public CryptTransformation(CryptAlgorithm cryptAlgorithm, CryptMode cryptMode) {
         this.cryptAlgorithm = cryptAlgorithm;
