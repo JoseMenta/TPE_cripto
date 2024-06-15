@@ -2,7 +2,7 @@ package org.example.crypt;
 
 public enum CryptAlgorithm {
     AES("AES"),
-    TRIPLE_DES("TripleDES");
+    TRIPLE_DES("DESede");
 
     private final String algorithm;
 
