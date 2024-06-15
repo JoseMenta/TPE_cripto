@@ -1,5 +1,7 @@
 package org.example;
 
+import org.example.data.Pair;
+
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
@@ -15,27 +17,30 @@ import static java.util.Arrays.copyOf;
 import static java.util.Arrays.copyOfRange;
 
 public class PBKDF2 {
-    public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String password = "margarita";
-        byte[] salt = new byte[]{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; // Salt de 8 bytes
-        int iterations = 10000;
-        int keyLength = 256 + 16*8; // longitud total en bits (para 64 caracteres en Base64)
 
-        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, keyLength);
+    // Key length is in bits and IV length is in bytes
+    public static Pair<SecretKey,IvParameterSpec> generateKey(String password, byte[] salt, int iterations, int keyLength, int IVLength, String algorithm) throws NoSuchAlgorithmException, InvalidKeySpecException {
+
+        int keyTemLength = keyLength + IVLength * 8; // longitud total en bits (para 64 caracteres en Base64)
+
+        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, keyTemLength);
         SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         byte[] hash = skf.generateSecret(spec).getEncoded();
 
         // Dividir el hash en key y iv
-        byte[] keyBytes = Arrays.copyOf(hash, 32); // 32 bytes para AES-256
-        byte[] iv = Arrays.copyOfRange(hash, 32, 48); // 16 bytes para IV
+        byte[] keyBytes = Arrays.copyOf(hash, keyLength/8);
+        byte[] iv = Arrays.copyOfRange(hash, keyLength/8, hash.length);
 
-        SecretKey key = new SecretKeySpec(keyBytes, "AES");
+        SecretKey key = new SecretKeySpec(keyBytes, algorithm);
         IvParameterSpec IV = new IvParameterSpec(iv);
 
-        String base64Key = Base64.getEncoder().encodeToString(key.getEncoded());
-        String base64IV = Base64.getEncoder().encodeToString(IV.getIV());
+        return new Pair<>(key, IV);
 
-        System.out.println("Clave: " + base64Key);
-        System.out.println("IV: " + base64IV);
     }
+    private static void printBytesHex(byte[] bytes){
+        for (byte b : bytes){
+            System.out.print(String.format("%02x", b));
+        }
+        System.out.println();
+}
 }
