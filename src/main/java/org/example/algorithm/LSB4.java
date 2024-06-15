@@ -10,6 +10,7 @@ public class LSB4 implements Algorithm{
     private static final int LSB4_BYTES = 2; //bytes needed to store a byte using LSB4
     private static final int LSB4_USED_BITS = 4;
 
+    @Override
     private int getMaxLength(BMP bmp){
         return bmp.getData().length / LSB4_BYTES;
     }

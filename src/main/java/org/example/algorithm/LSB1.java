@@ -8,11 +8,14 @@ public class LSB1 implements Algorithm{
     private static final int BYTE_SIZE = 8;
 
     @Override
+    public int
+
+    @Override
     public BMP embed(BMP bmp, Payload payload) {
 
-//        if(getMaxLength(bmp) < payload.getTotalLength()){
-//            throw new InsuficientSizeException();
-//        }
+        if(getMaxLength(bmp) < payload.getTotalLength()){
+            throw new InsuficientSizeException();
+        }
 
         byte[] sizeArray = payload.getSizeBinary();
         byte[] bmpData = bmp.getData();
