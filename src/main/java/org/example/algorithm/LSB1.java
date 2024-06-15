@@ -8,7 +8,9 @@ public class LSB1 implements Algorithm{
     private static final int BYTE_SIZE = 8;
 
     @Override
-    public int
+    private int getMaxLength(BMP bmp){
+        return bmp.getData().length / LSB4_BYTES;
+    }
 
     @Override
     public BMP embed(BMP bmp, Payload payload) {
