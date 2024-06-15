@@ -1,4 +1,4 @@
-package org.example;
+package org.example.algorithm;
 
 import org.example.data.BMP;
 import org.example.data.Payload;
@@ -24,6 +24,7 @@ public class LSB4 implements Algorithm{
         for(int o = 0, i=0; o<bmp.getData().length && i<payloadContent.length; o+= LSB4_BYTES, i++){
             byte info = payloadContent[i];
             for(int j = 0; j< LSB4_BYTES; j++){
+                // (0011 0110 >> 0) & 0x01
                 ansContent[i+j] = (byte) ((ansContent[o+j] & 0xF0) | ((info >> ((LSB4_BYTES - 1 - j)*LSB4_USED_BITS)) & 0x0F));
             }
         }

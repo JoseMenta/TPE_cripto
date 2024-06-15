@@ -1,4 +1,4 @@
-package org.example;
+package org.example.algorithm;
 
 import org.example.data.BMP;
 import org.example.data.Payload;
@@ -7,5 +7,12 @@ public interface Algorithm {
     BMP embed(BMP bmp, Payload payload);
 
     Payload recover(BMP bmp, boolean withExtension);
+
+    int getMaxLength(BMP bmp){
+        return bmp.getData().length / LSB4_BYTES;
+    }
 }
+
+
+
 

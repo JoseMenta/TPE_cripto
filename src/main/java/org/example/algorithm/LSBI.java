@@ -1,4 +1,4 @@
-package org.example;
+package org.example.algorithm;
 
 import org.example.data.BMP;
 import org.example.data.Payload;

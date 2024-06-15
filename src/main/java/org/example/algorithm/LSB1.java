@@ -1,4 +1,4 @@
-package org.example;
+package org.example.algorithm;
 
 import org.example.data.BMP;
 import org.example.data.Payload;
@@ -9,6 +9,11 @@ public class LSB1 implements Algorithm{
 
     @Override
     public BMP embed(BMP bmp, Payload payload) {
+
+//        if(getMaxLength(bmp) < payload.getTotalLength()){
+//            throw new InsuficientSizeException();
+//        }
+
         byte[] sizeArray = payload.getSizeBinary();
         byte[] bmpData = bmp.getData();
 
@@ -16,8 +21,8 @@ public class LSB1 implements Algorithm{
             int bitIndex = i % BYTE_SIZE;
             int byteIndex = i / BYTE_SIZE;
             byte targetByte = sizeArray[byteIndex];
-            //TODO: aca creo que el shift sería (targetByte >> (7-bitIndex)), porque el primer bit es el que se obtiene haciendo 7 shifts a la derecha
-            int targetBit = (targetByte >> bitIndex) & 1;
+            //FIX: sería (targetByte >> (7-bitIndex)), porque el primer bit es el que se obtiene haciendo 7 shifts a la derecha
+            int targetBit = (targetByte >> (7- bitIndex)) & 0x01;
             bmpData[i] = (byte) ((bmpData[i] & 0xFE) | targetBit);
         }
 
@@ -27,7 +32,8 @@ public class LSB1 implements Algorithm{
         for (int i = 0; i < payloadData.length; i++) {
             for (int j = 0; j < BYTE_SIZE; j++) {
                 byte targetByte = payloadData[i];
-                int targetBit = (targetByte >> j) & 1;
+                // FIX: Misma correccion que arriba
+                int targetBit = (targetByte >> (7 - j)) & 0x01;
                 bmpData[offset] = (byte) ((bmpData[offset] & 0xFE) | targetBit);
                 offset++;
             }
@@ -37,7 +43,8 @@ public class LSB1 implements Algorithm{
         for (int i = 0; i < extension.length; i++) {
             for (int j = 0; j < BYTE_SIZE; j++) {
                 byte targetByte = extension[i];
-                int targetBit = (targetByte >> j) & 1;
+                // FIX: Misma correccion que arriba
+                int targetBit = (targetByte >> (7-j)) & 0x01;
                 bmpData[offset] = (byte) ((bmpData[offset] & 0xFE) | targetBit);
                 offset++;
             }
@@ -55,5 +62,8 @@ public class LSB1 implements Algorithm{
     @Override
     public Payload recover(BMP bmp,boolean withExtension) {
         return null;
+
+
+
     }
 }
