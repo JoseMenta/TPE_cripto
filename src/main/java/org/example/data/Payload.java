@@ -3,10 +3,15 @@ package org.example.data;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -19,6 +24,35 @@ public class Payload {
     @Setter
     private byte[] content;
     private Optional<String> extension;
+
+    private static Optional<String> getExtension(Path path){
+        final String name = path.getFileName().toString();
+        int dotIndex = name.lastIndexOf('.');
+        if(dotIndex == -1 || dotIndex == name.length() - 1) {
+            return Optional.empty();
+        }
+        return Optional.of(name.substring(dotIndex + 1));
+    }
+
+    public static Payload of(Path path) throws IOException {
+        final byte[] payloadData = Files.readAllBytes(path);
+        return new Payload(payloadData.length,payloadData,getExtension(path));
+    }
+
+    public void writeToFile(String filename){
+        if(extension.isEmpty()){
+            throw new IllegalStateException();
+        }
+        try(OutputStream writer = Files.newOutputStream(
+                Path.of(filename+"."+extension.get()),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING,
+                StandardOpenOption.WRITE)){
+            writer.write(this.content);
+        }catch (Exception e){
+            throw new IllegalStateException(e);
+        }
+    }
 
     public Payload() {
         extension = Optional.empty();
