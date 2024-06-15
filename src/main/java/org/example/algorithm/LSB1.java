@@ -89,7 +89,7 @@ public class LSB1 implements Algorithm{
         }
         ans.setSize(sizeBinary);
         final int size = ans.getSize();
-        if(size < maxLength){
+        if(size > maxLength){
             throw new IllegalArgumentException("Can't read content from porter");
         }
         final byte[] content = new byte[size];

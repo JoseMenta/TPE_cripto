@@ -53,7 +53,7 @@ public class Main {
             final Algorithm algorithm = getStegAlgorithm(algorithmString);
             final Payload outPayload = algorithm.recover(porterBmp, true);
             outPayload.writeToFile(output);
-        
+
         System.out.println("Hello world!");
     }
 }
