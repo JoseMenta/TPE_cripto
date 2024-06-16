@@ -1,4 +1,4 @@
-package org.example.exceptions;
+package ar.edu.itba.cripto.exceptions;
 
 public class InsuficientSizeException extends RuntimeException{
 }

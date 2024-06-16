@@ -1,7 +1,7 @@
-package org.example.input;
+package ar.edu.itba.cripto.input;
 
 import lombok.Getter;
-import org.example.crypt.CryptMode;
+import ar.edu.itba.cripto.crypt.CryptMode;
 
 public enum BlockInput {
     ECB("ecb",CryptMode.ECB),

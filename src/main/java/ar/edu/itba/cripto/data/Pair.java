@@ -1,4 +1,4 @@
-package org.example.data;
+package ar.edu.itba.cripto.data;
 
 public class Pair<T,E> {
     T first;

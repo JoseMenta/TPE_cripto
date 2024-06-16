@@ -1,4 +1,4 @@
-package org.example.data;
+package ar.edu.itba.cripto.data;
 
 import lombok.Getter;
 import lombok.Setter;

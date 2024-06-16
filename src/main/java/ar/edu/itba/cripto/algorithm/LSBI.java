@@ -1,9 +1,9 @@
-package org.example.algorithm;
+package ar.edu.itba.cripto.algorithm;
 
 import lombok.Getter;
-import org.example.data.BMP;
-import org.example.data.Payload;
-import org.example.exceptions.InsuficientSizeException;
+import ar.edu.itba.cripto.data.BMP;
+import ar.edu.itba.cripto.data.Payload;
+import ar.edu.itba.cripto.exceptions.InsuficientSizeException;
 
 import java.util.Arrays;
 

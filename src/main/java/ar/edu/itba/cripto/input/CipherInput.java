@@ -1,7 +1,7 @@
-package org.example.input;
+package ar.edu.itba.cripto.input;
 
 import lombok.Getter;
-import org.example.crypt.CryptAlgorithm;
+import ar.edu.itba.cripto.crypt.CryptAlgorithm;
 @Getter
 public enum CipherInput {
     AES_128("aes128",128,16,CryptAlgorithm.AES),

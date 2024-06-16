@@ -1,4 +1,4 @@
-package org.example.crypt;
+package ar.edu.itba.cripto.crypt;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;

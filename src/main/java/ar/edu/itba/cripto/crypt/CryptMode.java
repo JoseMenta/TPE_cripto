@@ -1,4 +1,4 @@
-package org.example.crypt;
+package ar.edu.itba.cripto.crypt;
 
 public enum CryptMode {
     ECB("ECB"),

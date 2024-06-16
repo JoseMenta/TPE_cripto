@@ -1,7 +1,7 @@
-package org.example.algorithm;
+package ar.edu.itba.cripto.algorithm;
 
-import org.example.data.BMP;
-import org.example.data.Payload;
+import ar.edu.itba.cripto.data.BMP;
+import ar.edu.itba.cripto.data.Payload;
 
 public interface Algorithm {
     BMP embed(BMP bmp, Payload payload);

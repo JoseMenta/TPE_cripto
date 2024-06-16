@@ -1,18 +1,18 @@
-package org.example;
+package ar.edu.itba.cripto;
 
-import org.example.algorithm.Algorithm;
-import org.example.algorithm.LSB1;
-import org.example.algorithm.LSB4;
-import org.example.algorithm.LSBI;
-import org.example.crypt.CryptTransformation;
-import org.example.crypt.Cryptography;
-import org.example.crypt.CryptographyImpl;
-import org.example.crypt.PBKDF2;
-import org.example.data.BMP;
-import org.example.data.Pair;
-import org.example.data.Payload;
-import org.example.input.BlockInput;
-import org.example.input.CipherInput;
+import ar.edu.itba.cripto.algorithm.Algorithm;
+import ar.edu.itba.cripto.algorithm.LSB1;
+import ar.edu.itba.cripto.algorithm.LSB4;
+import ar.edu.itba.cripto.algorithm.LSBI;
+import ar.edu.itba.cripto.crypt.CryptTransformation;
+import ar.edu.itba.cripto.crypt.Cryptography;
+import ar.edu.itba.cripto.crypt.CryptographyImpl;
+import ar.edu.itba.cripto.crypt.PBKDF2;
+import ar.edu.itba.cripto.data.BMP;
+import ar.edu.itba.cripto.data.Pair;
+import ar.edu.itba.cripto.data.Payload;
+import ar.edu.itba.cripto.input.BlockInput;
+import ar.edu.itba.cripto.input.CipherInput;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;

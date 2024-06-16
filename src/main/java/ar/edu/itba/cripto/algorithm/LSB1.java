@@ -1,8 +1,8 @@
-package org.example.algorithm;
+package ar.edu.itba.cripto.algorithm;
 
-import org.example.data.BMP;
-import org.example.data.Payload;
-import org.example.exceptions.InsuficientSizeException;
+import ar.edu.itba.cripto.data.BMP;
+import ar.edu.itba.cripto.data.Payload;
+import ar.edu.itba.cripto.exceptions.InsuficientSizeException;
 
 public class LSB1 implements Algorithm{
     private static final int SIZE_BITS = 4 * 8;

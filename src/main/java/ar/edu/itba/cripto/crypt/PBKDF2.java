@@ -1,6 +1,6 @@
-package org.example.crypt;
+package ar.edu.itba.cripto.crypt;
 
-import org.example.data.Pair;
+import ar.edu.itba.cripto.data.Pair;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
