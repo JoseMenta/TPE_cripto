@@ -1,3 +1,5 @@
+[![Main](https://github.com/JoseMenta/TPE_cripto/actions/workflows/main.yaml/badge.svg)](https://github.com/JoseMenta/TPE_cripto/actions/workflows/main.yaml)
+
 # TPE Criptografía y Seguridad
 
 El siguiente proyecto implementa algoritmos de esteganografía sobre archivos con _bmp_, con la opción de encriptar el contenido que se almacena en los archivos utilizando diferentes primitivas y modos.
