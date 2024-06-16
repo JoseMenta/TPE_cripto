@@ -3,6 +3,7 @@ package org.example.algorithm;
 import org.example.data.BMP;
 import org.example.data.Payload;
 import org.example.exceptions.InsuficientSizeException;
+
 import java.util.Arrays;
 
 public class LSB4 implements Algorithm{

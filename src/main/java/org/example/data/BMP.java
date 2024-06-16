@@ -3,11 +3,9 @@ package org.example.data;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.BufferedWriter;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 

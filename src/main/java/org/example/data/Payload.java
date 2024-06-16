@@ -5,7 +5,6 @@ import lombok.Setter;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -14,7 +13,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 
 @Getter
@@ -37,6 +35,28 @@ public class Payload {
     public static Payload of(Path path) throws IOException {
         final byte[] payloadData = Files.readAllBytes(path);
         return new Payload(payloadData.length,payloadData,getExtension(path));
+    }
+
+    //Reads the payload from a byte[] consisting of
+    // size || data || extension
+    public static Payload fromBytes(byte[] data){
+        final Payload ans = new Payload();
+        final byte[] sizeBinary = new byte[Integer.BYTES];
+        //Size
+        int srcPos = 0;
+        System.arraycopy(data, srcPos, sizeBinary, 0, Integer.BYTES);
+        srcPos+=Integer.BYTES;
+        ans.setSize(sizeBinary);
+        //Content
+        final byte[] content = new byte[ans.size];
+        System.arraycopy(data,srcPos,content,0,content.length);
+        ans.setContent(content);
+        srcPos+=content.length;
+        //Extension
+        final byte[] extensionBinary = new byte[data.length - srcPos];//binary for data
+        System.arraycopy(data,srcPos,extensionBinary,0,extensionBinary.length);
+        ans.setExtension(new String(extensionBinary,StandardCharsets.US_ASCII));
+        return ans;
     }
 
     public void writeToFile(String filename){

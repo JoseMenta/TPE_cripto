@@ -1,4 +1,4 @@
-package org.example;
+package org.example.crypt;
 
 import org.example.data.Pair;
 
@@ -9,12 +9,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.sql.Struct;
 import java.util.Arrays;
-import java.util.Base64;
-
-import static java.util.Arrays.copyOf;
-import static java.util.Arrays.copyOfRange;
 
 public class PBKDF2 {
 
@@ -42,5 +37,5 @@ public class PBKDF2 {
             System.out.print(String.format("%02x", b));
         }
         System.out.println();
-}
+    }
 }
