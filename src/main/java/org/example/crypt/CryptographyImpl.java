@@ -44,14 +44,14 @@ public class CryptographyImpl implements Cryptography {
     @Override
     public void encrypt(InputStream in, OutputStream out) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, IOException, BadPaddingException, InvalidAlgorithmParameterException {
         Cipher cipher = Cipher.getInstance(cryptTransformation.getTransformation());
-        cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+        cipher.init(Cipher.ENCRYPT_MODE, key, cryptTransformation.isECB()?null:iv);
         execute(cipher, in, out);
     }
 
     @Override
     public void decrypt(InputStream in, OutputStream out) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, IOException, BadPaddingException, InvalidAlgorithmParameterException {
         Cipher cipher = Cipher.getInstance(cryptTransformation.getTransformation());
-        cipher.init(Cipher.DECRYPT_MODE, key, iv);
+        cipher.init(Cipher.DECRYPT_MODE, key, cryptTransformation.isECB()?null:iv);
         execute(cipher, in, out);
     }
 }

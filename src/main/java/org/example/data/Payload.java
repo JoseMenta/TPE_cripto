@@ -53,7 +53,7 @@ public class Payload {
         ans.setContent(content);
         srcPos+=content.length;
         //Extension
-        final byte[] extensionBinary = new byte[data.length - srcPos];//binary for data
+        final byte[] extensionBinary = new byte[data.length - srcPos-1];//binary for data, avoid \0 with -1
         System.arraycopy(data,srcPos,extensionBinary,0,extensionBinary.length);
         ans.setExtension(new String(extensionBinary,StandardCharsets.US_ASCII));
         return ans;
