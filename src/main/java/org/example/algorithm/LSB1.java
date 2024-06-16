@@ -103,6 +103,7 @@ public class LSB1 implements Algorithm{
             StringBuilder builder = new StringBuilder();
             byte last = 0;
             do{
+                last = 0;
                 for (int j = 0; j < BYTE_SIZE; j++) {
                     last = (byte) ((last << 0x01) | (porterData[p] & 0x01));
                     p++;
