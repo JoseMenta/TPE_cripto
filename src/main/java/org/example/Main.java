@@ -21,6 +21,8 @@ public class Main {
     private static final String PORTER_FILE = "p";
     private static final String OUTPUT_FILE = "out";
     private static final String STEG_ALGORITHM = "steg";
+    private static final String EMBED_FLAG = "embed";
+    private static final String EXTRACT_FLAG = "extract";
 
     private static final String LSB1_ALGORITHM = "LSB1";
     private static final String LSB4_ALGORITHM = "LSB4";
@@ -29,7 +31,7 @@ public class Main {
     private static Algorithm getStegAlgorithm(final String algorithm) {
         return switch (algorithm){
             case LSBI_Algorithm -> new LSBI();
-            case LSB4_ALGORITHM -> new LSB1();
+            case LSB4_ALGORITHM -> new LSB4();
             default -> new LSB1();
         };
     }
@@ -45,14 +47,17 @@ public class Main {
 
         byte[] porterData = Files.readAllBytes(Path.of(porter));
         final BMP porterBmp = new BMP(porterData);
-
-//            final Algorithm algorithm = getStegAlgorithm(algorithmString);
-//            final BMP outBmp = algorithm.embed(porterBmp, Payload.of(Path.of(input)));
-//            outBmp.writeToFile(Path.of(output));
-
+        if (System.getProperty(EMBED_FLAG) != null) {
+            final Algorithm algorithm = getStegAlgorithm(algorithmString);
+            final BMP outBmp = algorithm.embed(porterBmp, Payload.of(Path.of(input)));
+            outBmp.writeToFile(Path.of(output));
+        }else if (System.getProperty(EXTRACT_FLAG) != null) {
             final Algorithm algorithm = getStegAlgorithm(algorithmString);
             final Payload outPayload = algorithm.recover(porterBmp, true);
             outPayload.writeToFile(output);
+        } else {
+            throw new IllegalArgumentException("Flag is missing");
+        }
 
         System.out.println("Hello world!");
     }

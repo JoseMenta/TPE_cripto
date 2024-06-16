@@ -26,7 +26,7 @@ public class LSB4 implements Algorithm{
             byte info = payloadContent[i];
             for(int j = 0; j< LSB4_BYTES; j++){
                 // (0011 0110 >> 0) & 0x01
-                ansContent[i+j] = (byte) ((ansContent[o+j] & 0xF0) | ((info >> ((LSB4_BYTES - 1 - j)*LSB4_USED_BITS)) & 0x0F));
+                ansContent[o+j] = (byte) ((ansContent[o+j] & 0xF0) | ((info >> ((LSB4_BYTES - 1 - j)*LSB4_USED_BITS)) & 0x0F));
             }
         }
         return new BMP(bmp.getSize(),ansContent,bmp.getHeader());
@@ -49,7 +49,7 @@ public class LSB4 implements Algorithm{
         }
         ans.setSize(sizeBinary);
         final int size = ans.getSize();
-        if(size < maxLength){
+        if(size > maxLength){
             throw new IllegalArgumentException("Can't read content from porter");
         }
         final byte[] content = new byte[size];

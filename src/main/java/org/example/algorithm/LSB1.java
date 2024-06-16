@@ -28,7 +28,6 @@ public class LSB1 implements Algorithm{
             int bitIndex = i % BYTE_SIZE;
             int byteIndex = i / BYTE_SIZE;
             byte targetByte = sizeArray[byteIndex];
-            //FIX: sería (targetByte >> (7-bitIndex)), porque el primer bit es el que se obtiene haciendo 7 shifts a la derecha
             int targetBit = (targetByte >> (7 - bitIndex)) & 0x01;
             bmpData[i] = (byte) ((bmpData[i] & 0xFE) | targetBit);
         }
@@ -40,7 +39,6 @@ public class LSB1 implements Algorithm{
         for (int i = 0; i < payloadData.length; i++) {
             for (int j = 0; j < BYTE_SIZE; j++) {
                 byte targetByte = payloadData[i];
-                // FIX: Misma correccion que arriba
                 int targetBit = (targetByte >> (7 - j)) & 0x01;
                 bmpData[offset] = (byte) ((bmpData[offset] & 0xFE) | targetBit);
                 offset++;
@@ -52,7 +50,6 @@ public class LSB1 implements Algorithm{
         for (int i = 0; i < extension.length; i++) {
             for (int j = 0; j < BYTE_SIZE; j++) {
                 byte targetByte = extension[i];
-                // FIX: Misma correccion que arriba
                 int targetBit = (targetByte >> (7 - j)) & 0x01;
                 bmpData[offset] = (byte) ((bmpData[offset] & 0xFE) | targetBit);
                 offset++;

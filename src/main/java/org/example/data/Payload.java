@@ -31,7 +31,7 @@ public class Payload {
         if(dotIndex == -1 || dotIndex == name.length() - 1) {
             return Optional.empty();
         }
-        return Optional.of(name.substring(dotIndex + 1));
+        return Optional.of("."+name.substring(dotIndex + 1));
     }
 
     public static Payload of(Path path) throws IOException {
@@ -44,7 +44,7 @@ public class Payload {
             throw new IllegalStateException();
         }
         try(OutputStream writer = Files.newOutputStream(
-                Path.of(filename+"."+extension.get()),
+                Path.of(filename+extension.get()),
                 StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING,
                 StandardOpenOption.WRITE)){
