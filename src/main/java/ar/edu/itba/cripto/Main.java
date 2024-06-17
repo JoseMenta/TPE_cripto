@@ -44,24 +44,26 @@ public class Main {
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
 
-        final String input = Optional.ofNullable(System.getProperty(INPUT_FILE)).orElseThrow(() -> new IllegalArgumentException("Input file is missing"));
         final String porter = Optional.ofNullable(System.getProperty(PORTER_FILE)).orElseThrow(() -> new IllegalArgumentException("Porter file is missing"));
         final String output = Optional.ofNullable(System.getProperty(OUTPUT_FILE)).orElseThrow(() -> new IllegalArgumentException("Output file is missing"));
-        final String algorithmString = Optional.ofNullable(System.getProperty(STEG_ALGORITHM)).orElseThrow(() -> new IllegalArgumentException("Steg algorithm is missing"));
         final Optional<String> password = Optional.ofNullable(System.getProperty(PASSWORD_FLAG));
         final CipherInput cipherInput = CipherInput.fromString(System.getProperty(CIPHER_FLAG));
         final BlockInput blockInput = BlockInput.fromString(System.getProperty(BLOCK_FLAG));
-        final SteganographyInput steganographyInput = SteganographyInput.fromString(algorithmString);
-        final Algorithm algorithm = steganographyInput.getAlgorithm();
-        final Path inputPath = Path.of(input);
+        final Algorithm algorithm = Optional.ofNullable(System.getProperty(STEG_ALGORITHM))
+                .map(SteganographyInput::fromString)
+                .map(SteganographyInput::getAlgorithm)
+                .orElseThrow(() -> new IllegalArgumentException("Steg algorithm is missing"));
         final CryptTransformation cryptTransformation = new CryptTransformation(cipherInput.getCryptAlgorithm(), blockInput.getCryptMode());
 
         byte[] porterData = Files.readAllBytes(Path.of(porter));
         final BMP porterBmp = new BMP(porterData);
 
         if (System.getProperty(EMBED_FLAG) != null) {
+            final Path inputPath = Optional.ofNullable(System.getProperty(INPUT_FILE))
+                    .map(Path::of)
+                    .orElseThrow(() -> new IllegalArgumentException("Input file is missing"));
             //Si tiene que encriptar, cambia generar el payload
-            final Payload payload;
+            Payload payload;
             if(password.isPresent()){
                 //Encriptar
                 final Payload auxPayload = Payload.of(inputPath); //To get size || data || extenion
