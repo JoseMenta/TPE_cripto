@@ -13,6 +13,7 @@ import ar.edu.itba.cripto.data.Pair;
 import ar.edu.itba.cripto.data.Payload;
 import ar.edu.itba.cripto.input.BlockInput;
 import ar.edu.itba.cripto.input.CipherInput;
+import ar.edu.itba.cripto.input.SteganographyInput;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -43,18 +44,6 @@ public class Main {
     private static final String CIPHER_FLAG = "a";
     private static final String BLOCK_FLAG = "m";
 
-    private static final String LSB1_ALGORITHM = "LSB1";
-    private static final String LSB4_ALGORITHM = "LSB4";
-    private static final String LSBI_Algorithm = "LSBI";
-
-    private static Algorithm getStegAlgorithm(final String algorithm) {
-        return switch (algorithm){
-            case LSBI_Algorithm -> new LSBI();
-            case LSB4_ALGORITHM -> new LSB4();
-            default -> new LSB1();
-        };
-    }
-
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
 
@@ -68,8 +57,9 @@ public class Main {
 
         byte[] porterData = Files.readAllBytes(Path.of(porter));
         final BMP porterBmp = new BMP(porterData);
+        final SteganographyInput steganographyInput = SteganographyInput.fromString(algorithmString);
         if (System.getProperty(EMBED_FLAG) != null) {
-            final Algorithm algorithm = getStegAlgorithm(algorithmString);
+            final Algorithm algorithm = steganographyInput.getAlgorithm();
             //Si tiene que encriptar, cambia generar el payload
             final Payload payload;
             if(password!=null){
@@ -87,7 +77,7 @@ public class Main {
             final BMP outBmp = algorithm.embed(porterBmp, payload);
             outBmp.writeToFile(Path.of(output));
         }else if (System.getProperty(EXTRACT_FLAG) != null) {
-            final Algorithm algorithm = getStegAlgorithm(algorithmString);
+            final Algorithm algorithm = steganographyInput.getAlgorithm();
             Payload outPayload = algorithm.recover(porterBmp, password==null);//extension is needed if password==null, because it is not encripted
             //Si tiene que desencriptar, lo tiene que hacer sobre el payload recuperado
             if(password!=null){
