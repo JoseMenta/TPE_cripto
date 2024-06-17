@@ -45,13 +45,14 @@ public class Main {
 
     private static final String LSB1_ALGORITHM = "LSB1";
     private static final String LSB4_ALGORITHM = "LSB4";
-    private static final String LSBI_Algorithm = "LSBI";
+    private static final String LSBI_ALGORITHM = "LSBI";
 
     private static Algorithm getStegAlgorithm(final String algorithm) {
         return switch (algorithm){
-            case LSBI_Algorithm -> new LSBI();
+            case LSBI_ALGORITHM -> new LSBI();
             case LSB4_ALGORITHM -> new LSB4();
-            default -> new LSB1();
+            case LSB1_ALGORITHM -> new LSB1();
+            default -> throw new IllegalArgumentException("Invalid algorithm");
         };
     }
 
@@ -65,35 +66,38 @@ public class Main {
         final String password = System.getProperty(PASSWORD_FLAG);
         final CipherInput cipherInput = CipherInput.fromString(System.getProperty(CIPHER_FLAG));
         final BlockInput blockInput = BlockInput.fromString(System.getProperty(BLOCK_FLAG));
+        final Algorithm algorithm = getStegAlgorithm(algorithmString);
+        final Path inputPath = Path.of(input);
+        final CryptTransformation cryptTransformation = new CryptTransformation(cipherInput.getCryptAlgorithm(), blockInput.getCryptMode());
 
         byte[] porterData = Files.readAllBytes(Path.of(porter));
         final BMP porterBmp = new BMP(porterData);
+
         if (System.getProperty(EMBED_FLAG) != null) {
-            final Algorithm algorithm = getStegAlgorithm(algorithmString);
             //Si tiene que encriptar, cambia generar el payload
             final Payload payload;
             if(password!=null){
-                final Payload auxPayload = Payload.of(Path.of(input)); //To get size || data || extenion
+                //Encriptar
+                final Payload auxPayload = Payload.of(inputPath); //To get size || data || extenion
                 Pair<SecretKey, IvParameterSpec> keyAndIV = PBKDF2.generateKey(password,Util.SALT,Util.ITERATIONS,cipherInput.getKeyLength(), cipherInput.getIvLength(), cipherInput.getCryptAlgorithm().getAlgorithm());
-                Cryptography cryptography = new CryptographyImpl(new CryptTransformation(cipherInput.getCryptAlgorithm(),blockInput.getCryptMode()),keyAndIV.getFirst(),keyAndIV.getSecond());
+                Cryptography cryptography = new CryptographyImpl(cryptTransformation, keyAndIV.getFirst(), keyAndIV.getSecond());
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                 InputStream inputStream = new ByteArrayInputStream(auxPayload.getBinary());
                 cryptography.encrypt(inputStream,outputStream);
                 byte[] encryptedData = outputStream.toByteArray();
                 payload = new Payload(encryptedData.length,encryptedData, Optional.empty());
             }else {
-                payload = Payload.of(Path.of(input));
+                payload = Payload.of(inputPath);
             }
             final BMP outBmp = algorithm.embed(porterBmp, payload);
             outBmp.writeToFile(Path.of(output));
         }else if (System.getProperty(EXTRACT_FLAG) != null) {
-            final Algorithm algorithm = getStegAlgorithm(algorithmString);
             Payload outPayload = algorithm.recover(porterBmp, password==null);//extension is needed if password==null, because it is not encripted
             //Si tiene que desencriptar, lo tiene que hacer sobre el payload recuperado
             if(password!=null){
                 //Desencriptar
                 Pair<SecretKey, IvParameterSpec> keyAndIV = PBKDF2.generateKey(password,Util.SALT,Util.ITERATIONS,cipherInput.getKeyLength(), cipherInput.getIvLength(), cipherInput.getCryptAlgorithm().getAlgorithm());
-                Cryptography cryptography = new CryptographyImpl(new CryptTransformation(cipherInput.getCryptAlgorithm(),blockInput.getCryptMode()),keyAndIV.getFirst(),keyAndIV.getSecond());
+                Cryptography cryptography = new CryptographyImpl(cryptTransformation, keyAndIV.getFirst(), keyAndIV.getSecond());
                 InputStream inputStream = new ByteArrayInputStream(outPayload.getContent());
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                 cryptography.decrypt(inputStream,outputStream);
