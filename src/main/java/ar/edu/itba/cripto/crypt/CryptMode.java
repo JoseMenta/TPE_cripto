@@ -1,5 +1,8 @@
 package ar.edu.itba.cripto.crypt;
 
+import lombok.Getter;
+
+@Getter
 public enum CryptMode {
     ECB("ECB"),
     CBC("CBC"),
@@ -12,7 +15,4 @@ public enum CryptMode {
         this.mode = mode;
     }
 
-    public String getMode() {
-        return mode;
-    }
 }

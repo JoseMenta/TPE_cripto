@@ -2,6 +2,9 @@ package ar.edu.itba.cripto.input;
 
 import lombok.Getter;
 import ar.edu.itba.cripto.crypt.CryptAlgorithm;
+
+import java.util.Arrays;
+
 @Getter
 public enum CipherInput {
     AES_128("aes128",128,16,CryptAlgorithm.AES),
@@ -22,14 +25,10 @@ public enum CipherInput {
     }
 
     public static CipherInput fromString(String input) {
-        if(input == null || input.isEmpty()) {
-            return CipherInput.AES_128;
-        }
-        return switch (input.toLowerCase()){
-            case "aes192" -> CipherInput.AES_192;
-            case "aes256" -> CipherInput.AES_256;
-            case "des" -> CipherInput.DES;
-            default -> CipherInput.AES_128;
-        };
+        //equalsIgnoreCase is false if input is null
+        return Arrays.stream(CipherInput.values())
+                .filter(cipherInput -> cipherInput.inputName.equalsIgnoreCase(input))
+                .findFirst()
+                .orElse(AES_128);
     }
 }

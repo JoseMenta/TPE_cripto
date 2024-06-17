@@ -6,15 +6,17 @@ import ar.edu.itba.cripto.algorithm.LSB4;
 import ar.edu.itba.cripto.algorithm.LSBI;
 import lombok.Getter;
 
+import java.util.Arrays;
+
 public enum SteganographyInput {
     LSB1("LSB1",new LSB1()),
     LSB4("LSB4",new LSB4()),
     LSBI("LSBI",new LSBI());
 
-    private String name;
+    private final String name;
 
     @Getter
-    private Algorithm algorithm;
+    private final Algorithm algorithm;
 
     SteganographyInput(String name, Algorithm algorithm) {
         this.algorithm = algorithm;
@@ -22,13 +24,9 @@ public enum SteganographyInput {
     }
 
     public static SteganographyInput fromString(String name) {
-        if(name == null || name.isEmpty()) {
-            return LSB1;
-        }
-        return switch (name) {
-            case "LSB4" -> LSB4;
-            case "LSBI" -> LSBI;
-            default -> LSB1;
-        };
+        return Arrays.stream(SteganographyInput.values())
+                .filter(i -> i.name.equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(LSB1);
     }
 }

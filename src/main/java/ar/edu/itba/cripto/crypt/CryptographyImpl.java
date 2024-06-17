@@ -1,5 +1,7 @@
 package ar.edu.itba.cripto.crypt;
 
+import lombok.Getter;
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -26,7 +28,9 @@ public class CryptographyImpl implements Cryptography {
         this.iv = iv;
     }
 
-    private void execute(Cipher cipher, InputStream in, OutputStream out) throws IOException, IllegalBlockSizeException, BadPaddingException {
+    private void cipher(InputStream in, OutputStream out, CipherMode mode) throws IOException, IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException {
+        Cipher cipher = Cipher.getInstance(cryptTransformation.getTransformation());
+        cipher.init(mode.getMode(), key, cryptTransformation.isECB() ? null : iv);
         byte[] buffer = new byte[BUFFER_SIZE];
         int bytesRead;
         while ((bytesRead = in.read(buffer)) != -1) {
@@ -43,15 +47,23 @@ public class CryptographyImpl implements Cryptography {
 
     @Override
     public void encrypt(InputStream in, OutputStream out) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, IOException, BadPaddingException, InvalidAlgorithmParameterException {
-        Cipher cipher = Cipher.getInstance(cryptTransformation.getTransformation());
-        cipher.init(Cipher.ENCRYPT_MODE, key, cryptTransformation.isECB()?null:iv);
-        execute(cipher, in, out);
+        cipher(in, out, CipherMode.ENCRYPT);
     }
 
     @Override
     public void decrypt(InputStream in, OutputStream out) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, IOException, BadPaddingException, InvalidAlgorithmParameterException {
-        Cipher cipher = Cipher.getInstance(cryptTransformation.getTransformation());
-        cipher.init(Cipher.DECRYPT_MODE, key, cryptTransformation.isECB()?null:iv);
-        execute(cipher, in, out);
+        cipher(in, out, CipherMode.DECRYPT);
+    }
+
+    @Getter
+    private enum CipherMode {
+        ENCRYPT(Cipher.ENCRYPT_MODE),
+        DECRYPT(Cipher.DECRYPT_MODE);
+
+        private final int mode;
+
+        CipherMode(int mode) {
+            this.mode = mode;
+        }
     }
 }

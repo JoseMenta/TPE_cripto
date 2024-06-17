@@ -1,5 +1,8 @@
 package ar.edu.itba.cripto.crypt;
 
+import lombok.Getter;
+
+@Getter
 public enum CryptAlgorithm {
     AES("AES"),
     TRIPLE_DES("DESede");
@@ -10,7 +13,4 @@ public enum CryptAlgorithm {
         this.algorithm = algorithm;
     }
 
-    public String getAlgorithm() {
-        return algorithm;
-    }
 }
