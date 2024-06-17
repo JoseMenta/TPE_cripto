@@ -59,11 +59,11 @@ public class Main {
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
 
-        final String input = System.getProperty(INPUT_FILE);
-        final String porter = System.getProperty(PORTER_FILE);
-        final String output = System.getProperty(OUTPUT_FILE);
-        final String algorithmString = System.getProperty(STEG_ALGORITHM);
-        final String password = System.getProperty(PASSWORD_FLAG);
+        final String input = Optional.ofNullable(System.getProperty(INPUT_FILE)).orElseThrow(() -> new IllegalArgumentException("Input file is missing"));
+        final String porter = Optional.ofNullable(System.getProperty(PORTER_FILE)).orElseThrow(() -> new IllegalArgumentException("Porter file is missing"));
+        final String output = Optional.ofNullable(System.getProperty(OUTPUT_FILE)).orElseThrow(() -> new IllegalArgumentException("Output file is missing"));
+        final String algorithmString = Optional.ofNullable(System.getProperty(STEG_ALGORITHM)).orElseThrow(() -> new IllegalArgumentException("Steg algorithm is missing"));
+        final Optional<String> password = Optional.ofNullable(System.getProperty(PASSWORD_FLAG));
         final CipherInput cipherInput = CipherInput.fromString(System.getProperty(CIPHER_FLAG));
         final BlockInput blockInput = BlockInput.fromString(System.getProperty(BLOCK_FLAG));
         final Algorithm algorithm = getStegAlgorithm(algorithmString);
@@ -76,10 +76,10 @@ public class Main {
         if (System.getProperty(EMBED_FLAG) != null) {
             //Si tiene que encriptar, cambia generar el payload
             final Payload payload;
-            if(password!=null){
+            if(password.isPresent()){
                 //Encriptar
                 final Payload auxPayload = Payload.of(inputPath); //To get size || data || extenion
-                Pair<SecretKey, IvParameterSpec> keyAndIV = PBKDF2.generateKey(password,Util.SALT,Util.ITERATIONS,cipherInput.getKeyLength(), cipherInput.getIvLength(), cipherInput.getCryptAlgorithm().getAlgorithm());
+                Pair<SecretKey, IvParameterSpec> keyAndIV = PBKDF2.generateKey(password.get(),Util.SALT,Util.ITERATIONS,cipherInput.getKeyLength(), cipherInput.getIvLength(), cipherInput.getCryptAlgorithm().getAlgorithm());
                 Cryptography cryptography = new CryptographyImpl(cryptTransformation, keyAndIV.getFirst(), keyAndIV.getSecond());
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                 InputStream inputStream = new ByteArrayInputStream(auxPayload.getBinary());
@@ -92,11 +92,11 @@ public class Main {
             final BMP outBmp = algorithm.embed(porterBmp, payload);
             outBmp.writeToFile(Path.of(output));
         }else if (System.getProperty(EXTRACT_FLAG) != null) {
-            Payload outPayload = algorithm.recover(porterBmp, password==null);//extension is needed if password==null, because it is not encripted
+            Payload outPayload = algorithm.recover(porterBmp, password.isEmpty());//extension is needed if password==null, because it is not encripted
             //Si tiene que desencriptar, lo tiene que hacer sobre el payload recuperado
-            if(password!=null){
+            if(password.isPresent()){
                 //Desencriptar
-                Pair<SecretKey, IvParameterSpec> keyAndIV = PBKDF2.generateKey(password,Util.SALT,Util.ITERATIONS,cipherInput.getKeyLength(), cipherInput.getIvLength(), cipherInput.getCryptAlgorithm().getAlgorithm());
+                Pair<SecretKey, IvParameterSpec> keyAndIV = PBKDF2.generateKey(password.get(),Util.SALT,Util.ITERATIONS,cipherInput.getKeyLength(), cipherInput.getIvLength(), cipherInput.getCryptAlgorithm().getAlgorithm());
                 Cryptography cryptography = new CryptographyImpl(cryptTransformation, keyAndIV.getFirst(), keyAndIV.getSecond());
                 InputStream inputStream = new ByteArrayInputStream(outPayload.getContent());
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
