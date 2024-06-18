@@ -23,13 +23,10 @@ public enum BlockInput {
     }
 
     public static BlockInput fromString(String inputName) {
-        if (inputName == null || inputName.isEmpty()) {
-            throw new IllegalArgumentException("Block mode is missing");
-        }
         return Arrays.stream(BlockInput.values())
                 .filter(blockInput -> blockInput.inputName.equalsIgnoreCase(inputName))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Invalid block mode"));
+                .orElse(CBC);
     }
 
 

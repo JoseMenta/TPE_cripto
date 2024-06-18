@@ -1,9 +1,6 @@
 package ar.edu.itba.cripto;
 
 import ar.edu.itba.cripto.algorithm.Algorithm;
-import ar.edu.itba.cripto.algorithm.LSB1;
-import ar.edu.itba.cripto.algorithm.LSB4;
-import ar.edu.itba.cripto.algorithm.LSBI;
 import ar.edu.itba.cripto.crypt.CryptTransformation;
 import ar.edu.itba.cripto.crypt.Cryptography;
 import ar.edu.itba.cripto.crypt.CryptographyImpl;
@@ -13,6 +10,7 @@ import ar.edu.itba.cripto.data.Pair;
 import ar.edu.itba.cripto.data.Payload;
 import ar.edu.itba.cripto.input.BlockInput;
 import ar.edu.itba.cripto.input.CipherInput;
+import ar.edu.itba.cripto.input.SteganographyInput;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -43,36 +41,26 @@ public class Main {
     private static final String CIPHER_FLAG = "a";
     private static final String BLOCK_FLAG = "m";
 
-    private static final String LSB1_ALGORITHM = "LSB1";
-    private static final String LSB4_ALGORITHM = "LSB4";
-    private static final String LSBI_ALGORITHM = "LSBI";
-
-    private static Algorithm getStegAlgorithm(final String algorithm) {
-        return switch (algorithm){
-            case LSBI_ALGORITHM -> new LSBI();
-            case LSB4_ALGORITHM -> new LSB4();
-            case LSB1_ALGORITHM -> new LSB1();
-            default -> throw new IllegalArgumentException("Invalid algorithm");
-        };
-    }
-
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
 
         final String porter = Optional.ofNullable(System.getProperty(PORTER_FILE)).orElseThrow(() -> new IllegalArgumentException("Porter file is missing"));
         final String output = Optional.ofNullable(System.getProperty(OUTPUT_FILE)).orElseThrow(() -> new IllegalArgumentException("Output file is missing"));
-        final String algorithmString = Optional.ofNullable(System.getProperty(STEG_ALGORITHM)).orElseThrow(() -> new IllegalArgumentException("Steg algorithm is missing"));
         final Optional<String> password = Optional.ofNullable(System.getProperty(PASSWORD_FLAG));
-        final Algorithm algorithm = getStegAlgorithm(algorithmString);
+        final Algorithm algorithm = Optional.ofNullable(System.getProperty(STEG_ALGORITHM))
+                .map(SteganographyInput::fromString)
+                .map(SteganographyInput::getAlgorithm)
+                .orElseThrow(() -> new IllegalArgumentException("Steg algorithm is missing"));
 
         byte[] porterData = Files.readAllBytes(Path.of(porter));
         final BMP porterBmp = new BMP(porterData);
 
         if (System.getProperty(EMBED_FLAG) != null) {
-            final String input = Optional.ofNullable(System.getProperty(INPUT_FILE)).orElseThrow(() -> new IllegalArgumentException("Input file is missing"));
-            final Path inputPath = Path.of(input);
+            final Path inputPath = Optional.ofNullable(System.getProperty(INPUT_FILE))
+                    .map(Path::of)
+                    .orElseThrow(() -> new IllegalArgumentException("Input file is missing"));
             //Si tiene que encriptar, cambia generar el payload
-            final Payload payload;
+            Payload payload;
             if(password.isPresent()){
                 //Encriptar
                 final BlockInput blockInput = BlockInput.fromString(System.getProperty(BLOCK_FLAG));
