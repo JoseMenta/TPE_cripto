@@ -25,12 +25,10 @@ public enum CipherInput {
     }
 
     public static CipherInput fromString(String input) {
-        if(input == null || input.isEmpty()) {
-            throw new IllegalArgumentException("Cipher mode is missing");
-        }
+        //equalsIgnoreCase is false if input is null
         return Arrays.stream(CipherInput.values())
                 .filter(cipherInput -> cipherInput.inputName.equalsIgnoreCase(input))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Invalid cipher mode"));
+                .orElse(AES_128);
     }
 }

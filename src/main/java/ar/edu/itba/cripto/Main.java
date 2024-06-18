@@ -1,6 +1,6 @@
 package ar.edu.itba.cripto;
 
-import ar.edu.itba.cripto.algorithm.*;
+import ar.edu.itba.cripto.algorithm.Algorithm;
 import ar.edu.itba.cripto.crypt.CryptTransformation;
 import ar.edu.itba.cripto.crypt.Cryptography;
 import ar.edu.itba.cripto.crypt.CryptographyImpl;
@@ -10,6 +10,7 @@ import ar.edu.itba.cripto.data.Pair;
 import ar.edu.itba.cripto.data.Payload;
 import ar.edu.itba.cripto.input.BlockInput;
 import ar.edu.itba.cripto.input.CipherInput;
+import ar.edu.itba.cripto.input.SteganographyInput;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -40,41 +41,31 @@ public class Main {
     private static final String CIPHER_FLAG = "a";
     private static final String BLOCK_FLAG = "m";
 
-    private static final String LSB1_ALGORITHM = "LSB1";
-    private static final String LSB4_ALGORITHM = "LSB4";
-    private static final String LSBI_ALGORITHM = "LSBI";
-
-    private static Algorithm getStegAlgorithm(final String algorithm) {
-        return switch (algorithm){
-            case LSBI_ALGORITHM -> new LSBI();
-            case LSB4_ALGORITHM -> new LSBX(4);
-            case LSB1_ALGORITHM -> new LSBX(1);
-            default -> throw new IllegalArgumentException("Invalid algorithm");
-        };
-    }
-
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
 
-        final String input = Optional.ofNullable(System.getProperty(INPUT_FILE)).orElseThrow(() -> new IllegalArgumentException("Input file is missing"));
         final String porter = Optional.ofNullable(System.getProperty(PORTER_FILE)).orElseThrow(() -> new IllegalArgumentException("Porter file is missing"));
         final String output = Optional.ofNullable(System.getProperty(OUTPUT_FILE)).orElseThrow(() -> new IllegalArgumentException("Output file is missing"));
-        final String algorithmString = Optional.ofNullable(System.getProperty(STEG_ALGORITHM)).orElseThrow(() -> new IllegalArgumentException("Steg algorithm is missing"));
         final Optional<String> password = Optional.ofNullable(System.getProperty(PASSWORD_FLAG));
-        final CipherInput cipherInput = CipherInput.fromString(System.getProperty(CIPHER_FLAG));
-        final BlockInput blockInput = BlockInput.fromString(System.getProperty(BLOCK_FLAG));
-        final Algorithm algorithm = getStegAlgorithm(algorithmString);
-        final Path inputPath = Path.of(input);
-        final CryptTransformation cryptTransformation = new CryptTransformation(cipherInput.getCryptAlgorithm(), blockInput.getCryptMode());
+        final Algorithm algorithm = Optional.ofNullable(System.getProperty(STEG_ALGORITHM))
+                .map(SteganographyInput::fromString)
+                .map(SteganographyInput::getAlgorithm)
+                .orElseThrow(() -> new IllegalArgumentException("Steg algorithm is missing"));
 
         byte[] porterData = Files.readAllBytes(Path.of(porter));
         final BMP porterBmp = new BMP(porterData);
 
         if (System.getProperty(EMBED_FLAG) != null) {
+            final Path inputPath = Optional.ofNullable(System.getProperty(INPUT_FILE))
+                    .map(Path::of)
+                    .orElseThrow(() -> new IllegalArgumentException("Input file is missing"));
             //Si tiene que encriptar, cambia generar el payload
-            final Payload payload;
+            Payload payload;
             if(password.isPresent()){
                 //Encriptar
+                final BlockInput blockInput = BlockInput.fromString(System.getProperty(BLOCK_FLAG));
+                final CipherInput cipherInput = CipherInput.fromString(System.getProperty(CIPHER_FLAG));
+                final CryptTransformation cryptTransformation = new CryptTransformation(cipherInput.getCryptAlgorithm(), blockInput.getCryptMode());
                 final Payload auxPayload = Payload.of(inputPath); //To get size || data || extenion
                 Pair<SecretKey, IvParameterSpec> keyAndIV = PBKDF2.generateKey(password.get(),Util.SALT,Util.ITERATIONS,cipherInput.getKeyLength(), cipherInput.getIvLength(), cipherInput.getCryptAlgorithm().getAlgorithm());
                 Cryptography cryptography = new CryptographyImpl(cryptTransformation, keyAndIV.getFirst(), keyAndIV.getSecond());
@@ -93,6 +84,9 @@ public class Main {
             //Si tiene que desencriptar, lo tiene que hacer sobre el payload recuperado
             if(password.isPresent()){
                 //Desencriptar
+                final BlockInput blockInput = BlockInput.fromString(System.getProperty(BLOCK_FLAG));
+                final CipherInput cipherInput = CipherInput.fromString(System.getProperty(CIPHER_FLAG));
+                final CryptTransformation cryptTransformation = new CryptTransformation(cipherInput.getCryptAlgorithm(), blockInput.getCryptMode());
                 Pair<SecretKey, IvParameterSpec> keyAndIV = PBKDF2.generateKey(password.get(),Util.SALT,Util.ITERATIONS,cipherInput.getKeyLength(), cipherInput.getIvLength(), cipherInput.getCryptAlgorithm().getAlgorithm());
                 Cryptography cryptography = new CryptographyImpl(cryptTransformation, keyAndIV.getFirst(), keyAndIV.getSecond());
                 InputStream inputStream = new ByteArrayInputStream(outPayload.getContent());
