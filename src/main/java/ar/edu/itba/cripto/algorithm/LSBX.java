@@ -10,18 +10,17 @@ public class LSBX implements Algorithm {
     private final static int BYTE_SIZE = 8;
 
     private final int n;
-    private final int bmpBytesNeededPerPayloadByte;
 
     public LSBX(int n) {
         if (n < 1 || n > 8) {
             throw new IllegalArgumentException("Invalid n");
         }
         this.n = n;
-        this.bmpBytesNeededPerPayloadByte = (int) Math.ceil(8.0 / n);
     }
 
     @Override
     public int getMaxLength(BMP bmp) {
+        int bmpBytesNeededPerPayloadByte = (int) Math.ceil(BYTE_SIZE / (double) n);
         return (int) Math.floor(bmp.getData().length / (double) bmpBytesNeededPerPayloadByte);
     }
 
