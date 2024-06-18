@@ -1,16 +1,13 @@
 package ar.edu.itba.cripto.input;
 
-import ar.edu.itba.cripto.algorithm.Algorithm;
-import ar.edu.itba.cripto.algorithm.LSB1;
-import ar.edu.itba.cripto.algorithm.LSB4;
-import ar.edu.itba.cripto.algorithm.LSBI;
+import ar.edu.itba.cripto.algorithm.*;
 import lombok.Getter;
 
 import java.util.Arrays;
 
 public enum SteganographyInput {
-    LSB1("LSB1",new LSB1()),
-    LSB4("LSB4",new LSB4()),
+    LSB1("LSB1",new LSBX(1)),
+    LSB4("LSB4",new LSBX(4)),
     LSBI("LSBI",new LSBI());
 
     private final String name;
