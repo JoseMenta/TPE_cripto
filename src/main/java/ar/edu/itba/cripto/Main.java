@@ -1,9 +1,6 @@
 package ar.edu.itba.cripto;
 
-import ar.edu.itba.cripto.algorithm.Algorithm;
-import ar.edu.itba.cripto.algorithm.LSB1;
-import ar.edu.itba.cripto.algorithm.LSB4;
-import ar.edu.itba.cripto.algorithm.LSBI;
+import ar.edu.itba.cripto.algorithm.*;
 import ar.edu.itba.cripto.crypt.CryptTransformation;
 import ar.edu.itba.cripto.crypt.Cryptography;
 import ar.edu.itba.cripto.crypt.CryptographyImpl;
@@ -50,8 +47,8 @@ public class Main {
     private static Algorithm getStegAlgorithm(final String algorithm) {
         return switch (algorithm){
             case LSBI_ALGORITHM -> new LSBI();
-            case LSB4_ALGORITHM -> new LSB4();
-            case LSB1_ALGORITHM -> new LSB1();
+            case LSB4_ALGORITHM -> new LSBX(4);
+            case LSB1_ALGORITHM -> new LSBX(1);
             default -> throw new IllegalArgumentException("Invalid algorithm");
         };
     }
