@@ -7,6 +7,7 @@ import ar.edu.itba.cripto.exceptions.InsuficientSizeException;
 import java.util.Arrays;
 
 public class LSBX implements Algorithm {
+    private final static int BYTE_SIZE = 8;
 
     private final int n;
     private final int bmpBytesNeededPerPayloadByte;
@@ -33,11 +34,11 @@ public class LSBX implements Algorithm {
         final byte[] payloadContent = payload.getBinary();
         int bitIndex = 0;
         // Iterate over the payload bits
-        while (bitIndex < payloadContent.length * 8) {
+        while (bitIndex < payloadContent.length * BYTE_SIZE) {
             // Get the current payload byte
-            byte info = payloadContent[bitIndex / 8];
+            byte info = payloadContent[bitIndex / BYTE_SIZE];
             // Get the current bit from the payload byte
-            int bit = (info >> (7 - bitIndex % 8)) & 0x01;
+            int bit = (info >> (BYTE_SIZE - 1 - bitIndex % BYTE_SIZE)) & 0x01;
             // Get the index of the bmp byte to modify
             int bmpIndex = bitIndex / n;
             // Get the index of the bit inside the bmp byte
@@ -54,6 +55,25 @@ public class LSBX implements Algorithm {
         return new BMP(bmp.getSize(), ansContent, bmp.getHeader());
     }
 
+    private byte[] recoverBytes(byte[] porter, int length, int bitIndexOffset) {
+        final byte[] ans = new byte[length];
+        int bitIndex = bitIndexOffset;
+        byte currentByte = 0;
+        for (; bitIndex < length * BYTE_SIZE; bitIndex++) {
+            int porterByteIndex = bitIndex / n;
+            int porterBitIndex = bitIndex % n;
+            int nextBit = (porter[porterByteIndex] >> (n - 1 - porterBitIndex)) & 0x01;
+            currentByte <<= 1;
+            currentByte |= (byte) nextBit;
+            if (bitIndex % BYTE_SIZE == BYTE_SIZE - 1) {
+                int ansByteIndex = length - 1 - bitIndex / BYTE_SIZE;
+                ans[ansByteIndex] = currentByte;
+                currentByte = 0;
+            }
+        }
+        return ans;
+    }
+
     @Override
     public Payload recover(BMP bmp, boolean withExtension) {
         final int maxLength = getMaxLength(bmp);
@@ -65,18 +85,33 @@ public class LSBX implements Algorithm {
         final byte[] porterData = bmp.getData();
 
         // Read the length
-        final byte[] sizeBinary = new byte[Integer.BYTES];
-        int bitIndex = 0; // Index used for sizeBinary
-        while (bitIndex < Integer.BYTES * 8) {
-            int porterByteIndex = bitIndex / n;
-            int porterBitIndex = bitIndex % n;
-            int sizeBinaryIndex = bitIndex / 8;
-            int sizeBinaryBitIndex = bitIndex % 8;
-
-
-
-            bitIndex++;
+        final byte[] sizeBinary = recoverBytes(porterData, Integer.BYTES, 0);
+        ans.setSize(sizeBinary);
+        final int size = ans.getSize();
+        if (size > maxLength) {
+            throw new IllegalArgumentException("Can't read content from porter");
         }
 
+        // Read the content
+        final byte[] porterContent = recoverBytes(porterData, size, Integer.BYTES * BYTE_SIZE);
+        ans.setContent(porterContent);
+
+        // Read the extension
+        if (withExtension) {
+            StringBuilder builder = new StringBuilder();
+            int offset = (Integer.BYTES + size) * BYTE_SIZE;
+            while (true) {
+                byte character = recoverBytes(porterData, 1, offset)[0];
+                if (character == 0) {
+                    break;
+                }
+                builder.append((char) character);
+                offset += BYTE_SIZE;
+            }
+            ans.setExtension(builder.toString());
+        } else {
+            ans.setExtension(null);
+        }
+        return ans;
     }
 }
