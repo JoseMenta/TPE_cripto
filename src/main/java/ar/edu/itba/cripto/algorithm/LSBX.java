@@ -57,16 +57,16 @@ public class LSBX implements Algorithm {
     private byte[] recoverBytes(byte[] porter, int length, int bitIndexOffset) {
         final byte[] ans = new byte[length];
         int bitIndex = bitIndexOffset;
+        int ansByteIndex = 0;
         byte currentByte = 0;
-        for (; bitIndex < length * BYTE_SIZE; bitIndex++) {
+        for (; bitIndex < length * BYTE_SIZE + bitIndexOffset; bitIndex++) {
             int porterByteIndex = bitIndex / n;
             int porterBitIndex = bitIndex % n;
             int nextBit = (porter[porterByteIndex] >> (n - 1 - porterBitIndex)) & 0x01;
             currentByte <<= 1;
             currentByte |= (byte) nextBit;
             if (bitIndex % BYTE_SIZE == BYTE_SIZE - 1) {
-                int ansByteIndex = length - 1 - bitIndex / BYTE_SIZE;
-                ans[ansByteIndex] = currentByte;
+                ans[ansByteIndex++] = currentByte;
                 currentByte = 0;
             }
         }
