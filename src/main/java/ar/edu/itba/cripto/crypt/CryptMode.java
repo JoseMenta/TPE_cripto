@@ -6,7 +6,7 @@ import lombok.Getter;
 public enum CryptMode {
     ECB("ECB"),
     CBC("CBC"),
-    CFB("CFB"),
+    CFB("CFB8"), //Use 8 bits for CFB
     OFB("OFB");
 
     private final String mode;

@@ -13,23 +13,6 @@ public class LSB1 implements Algorithm{
         return bmp.getData().length / BYTE_SIZE;
     }
 
-//    @Override
-//    public BMP embed(BMP bmp, Payload payload) {
-//        if(getMaxLength(bmp) < payload.getTotalLength()){
-//            throw new InsuficientSizeException();
-//        }
-//        final byte[] ansContent = Arrays.copyOf(bmp.getData(), bmp.getData().length);
-//        final byte[] payloadContent = payload.getBinary();
-//        for(int o = 0, i=0; o<bmp.getData().length && i<payloadContent.length; o+= BYTE_SIZE, i++){
-//            byte info = payloadContent[i];
-//            for(int j = 0; j< BYTE_SIZE; j++){
-//                // (0011 0110 >> 0) & 0x01
-//                ansContent[o+j] = (byte) ((ansContent[o+j] & 0xFE) | ((info >> ((BYTE_SIZE - 1 - j)*1)) & 0x01));
-//            }
-//        }
-//        return new BMP(bmp.getSize(),ansContent,bmp.getHeader());
-//    }
-
     @Override
     public BMP embed(BMP bmp, Payload payload) {
 
@@ -67,16 +50,10 @@ public class LSB1 implements Algorithm{
         for (int i = 0; i < extension.length; i++) {
             for (int j = 0; j < BYTE_SIZE; j++) {
                 byte targetByte = extension[i];
-                int targetBit = (targetByte >> (7 - j)) & 0x01;
+                int targetBit = (targetByte >> (7 - j)) & 0x01; //0000 0001
                 bmpData[offset] = (byte) ((bmpData[offset] & 0xFE) | targetBit);
                 offset++;
             }
-        }
-
-        // Final 0
-        for (int i = 0; i < BYTE_SIZE; i++) {
-            bmpData[offset] = (byte) (bmpData[offset] & 0xFE);
-            offset++;
         }
 
         bmp.setData(bmpData);

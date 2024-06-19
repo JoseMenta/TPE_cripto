@@ -11,7 +11,7 @@ public class CryptTransformation {
     }
 
     public String getTransformation() {
-        return cryptAlgorithm.getAlgorithm() + "/" + cryptMode.getMode() + "/" + "NoPadding"; //PKCS5Padding
+        return cryptAlgorithm.getAlgorithm() + "/" + cryptMode.getMode() + "/" + "PKCS5Padding"; //PKCS5Padding
     }
 
     public boolean isECB(){
