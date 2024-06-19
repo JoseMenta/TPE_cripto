@@ -24,6 +24,7 @@ public class LSBX implements Algorithm {
         return (int) Math.floor(bmp.getData().length / (double) bmpBytesNeededPerPayloadByte);
     }
 
+    // TODO: Fix
     @Override
     public BMP embed(BMP bmp, Payload payload) {
         if (getMaxLength(bmp) < payload.getTotalLength()) {
@@ -54,6 +55,7 @@ public class LSBX implements Algorithm {
         return new BMP(bmp.getSize(), ansContent, bmp.getHeader());
     }
 
+    // TODO: Works but better to convert it as an Iterator<byte>
     private byte[] recoverBytes(byte[] porter, int length, int bitIndexOffset) {
         final byte[] ans = new byte[length];
         int bitIndex = bitIndexOffset;
