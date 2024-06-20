@@ -6,15 +6,31 @@ import ar.edu.itba.cripto.data.Payload;
 import ar.edu.itba.cripto.exceptions.InsuficientSizeException;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class LSBI implements Algorithm{
+
+public class LSBI implements Algorithm {
+
+    private static final int LSBI_BYTES = 8 ;
+    private static final int MASK = 0b110;
+    private static final List<Integer> PATTERNS = List.of(0b000, 0b010, 0b100, 0b110);
+    private static final int PATTERN_COUNT = PATTERNS.size();
 
     private byte getLSB(byte b){
         return (byte) (b & 0x01);
     }
-    private static final int LSBI_BYTES = 8 ;
 
-    private static final int PATTERN_COUNT = 4;
+    //Es Blue, Green, Red, Blue, Green, Red, ...
+    private boolean isRedChannel(int i){
+        return i % 3 == 2;
+    }
+
+    private int getPatternIndex(byte pattern){
+        return (pattern & MASK) >> 1;
+    }
+
     @Override
     public BMP embed(BMP bmp, Payload payload) {
         if(getMaxLength(bmp) < payload.getTotalLength()){
@@ -22,25 +38,26 @@ public class LSBI implements Algorithm{
         }
         final byte[] ansContent = Arrays.copyOf(bmp.getData(), bmp.getData().length);
         final byte[] payloadContent = payload.getBinary();
-        final PatternChange[] patternChanges = new PatternChange[]{new PatternChange("00"),new PatternChange("01"),new PatternChange("10"), new PatternChange("11")};
+        final PatternChanges patternChanges = new PatternChanges(MASK, PATTERNS);
+        // final PatternChange[] patternChanges = new PatternChange[]{new PatternChange("00"),new PatternChange("01"),new PatternChange("10"), new PatternChange("11")};
         int o = 4; //Dejamos el espacio para guardar con LSB1
-        //Es Blue, Green, Red, Blue, Green
-        //Estamos en Green
-        //Si o%3==2
         for(int i=0; o<bmp.getData().length && i<payloadContent.length;i++) {
             byte infoByte = payloadContent[i];
             for (int j = 0; j < LSBI_BYTES; o++){
-                if(o%3==2){ //No se escriben Red
+                if(isRedChannel(o)){ //No se escriben Red
                     continue;
                 }
                 byte prev = getLSB(ansContent[o]);//Guardamos lo que tenía antes
                 ansContent[o] = (byte) ((ansContent[o] & 0XFE) | ((infoByte >> (LSBI_BYTES - 1 -j)) & 0x01));
                 byte curr = getLSB(ansContent[o]);
-                int index = PatternChange.getIndex(ansContent[o]);
+                PatternChange patternChange = patternChanges.getPatternChange(ansContent[o]);
+                // int index = PatternChange.getIndex(ansContent[o]);
                 if(prev!=curr){
-                    patternChanges[index].incrementChanged();
+                    // patternChanges[index].incrementChanged();
+                    patternChange.incrementChanged();
                 }
-                patternChanges[index].incrementCount();
+                // patternChanges[index].incrementCount();
+                patternChange.incrementCount();
                 j++;
             }
         }
@@ -48,35 +65,59 @@ public class LSBI implements Algorithm{
         o=4;
         for(int i=0; o<bmp.getData().length && i<payloadContent.length;i++) {
             for (int j = 0; j < LSBI_BYTES; o++){
-                if(o%3==2){ //No se escriben Red
+                if(isRedChannel(o)){ //No se escriben Red
                     continue;
                 }
-                int index = PatternChange.getIndex(ansContent[o]);
-                if (patternChanges[index].mustShift()){
+                PatternChange patternChange = patternChanges.getPatternChange(ansContent[o]);
+                // int index = PatternChange.getIndex(ansContent[o]);
+                // if (patternChanges[index].mustShift()){
+                if (patternChange.mustShift()){
                     ansContent[o] =(byte) (ansContent[o] ^ 0x01);
                 }
                 j++;
 
             }
         }
-        for(int i = 0; i<PATTERN_COUNT; i++){
-            if(patternChanges[i].mustShift()){
-                ansContent[i] = (byte) (ansContent[i] | 0x01);
-            }else{
-                ansContent[i] = (byte) (ansContent[i] & 0xFE);
+        for (PatternChange patternChange : patternChanges.getPatternChanges()) {
+            int index = getPatternIndex(patternChange.getPattern());
+            if (patternChange.mustShift()) {
+                ansContent[index] = (byte) (ansContent[index] | 0x01);
+            } else {
+                ansContent[index] = (byte) (ansContent[index] & 0xFE);
             }
         }
+//        for(int i = 0; i<PATTERN_COUNT; i++){
+//            if(patternChanges[i].mustShift()){
+//                ansContent[i] = (byte) (ansContent[i] | 0x01);
+//            }else{
+//                ansContent[i] = (byte) (ansContent[i] & 0xFE);
+//            }
+//        }
 
          return new BMP(bmp.getSize(),ansContent,bmp.getHeader());
     }
 
+    private byte recoverByte(byte[] porterData, int porterIndex, PatternChanges patternChanges, boolean[] changed) {
+        byte ans = 0;
+        for(int j = 0; j<LSBI_BYTES; porterIndex++, j++) {
+            if (isRedChannel(porterIndex)) {
+                continue;
+            }
+            int index = getPatternIndex(patternChanges.getPatternChange(porterData[porterIndex]).getPattern());
+            byte recoveredBit = (byte) ((porterData[porterIndex] & 0x01) ^ (changed[index] ? 0x01 : 0x00));
+            ans = (byte) (ans | (recoveredBit << (LSBI_BYTES - 1 - j)));
+        }
+        return ans;
+    }
+
     @Override
     public Payload recover(BMP bmp,boolean withExtension) {
-//        int maxLength = Integer.MAX_VALUE;//TODO
+        final PatternChanges patternChanges = new PatternChanges(MASK, PATTERNS);
+        int maxLength = getMaxLength(bmp);
         final Payload ans = new Payload();
-//        if(maxLength < PATTERN_COUNT){ //No puede almacenar los patrones
-//            throw new IllegalArgumentException("Can't read patterns from porter");
-//        }
+        if(maxLength < PATTERN_COUNT){ //No puede almacenar los patrones
+            throw new IllegalArgumentException("Can't read patterns from porter");
+        }
         final byte[] porterData = bmp.getData();
         boolean[] changed = new boolean[PATTERN_COUNT];
         for(int i = 0; i<PATTERN_COUNT; i++){
@@ -87,43 +128,26 @@ public class LSBI implements Algorithm{
             }
         }
         int o = 4;
-//        maxLength -= PATTERN_COUNT;
-//        if(maxLength < Integer.BYTES){
-//            throw new IllegalArgumentException("Can't read size from porter");
-//        }
+        maxLength -= PATTERN_COUNT;
+        if(maxLength < Integer.BYTES){
+            throw new IllegalArgumentException("Can't read size from porter");
+        }
         //Read size
         final byte[] sizeBinary = new byte[Integer.BYTES];
-        for(int i=0; i<Integer.BYTES; i++){
-            for(int j = 0; j<LSBI_BYTES; o++){
-                if(o%3==2){
-                    continue;
-                }
-                if(changed[PatternChange.getIndex(porterData[o])]){
-                    sizeBinary[i] = (byte) (sizeBinary[i] | (((porterData[o] & 0x01)^0x01) << (LSBI_BYTES - 1 - j)));
-                }else{
-                    sizeBinary[i] = (byte) (sizeBinary[i] | ((porterData[o] & 0x01) << (LSBI_BYTES - 1 - j)));
-                }
-                j++;
-            }
+        for(int i=0; i<Integer.BYTES; i++, o+=LSBI_BYTES){
+            sizeBinary[i] = recoverByte(porterData, o, patternChanges, changed);
         }
         ans.setSize(sizeBinary);
 
         //Read content
         final int size = ans.getSize();
-//        maxLength -= Integer.BYTES * LSBI_BYTES;
+        maxLength -= Integer.BYTES;
+        if(size > maxLength){
+            throw new IllegalArgumentException("Can't read content from porter");
+        }
         final byte [] content = new byte[size];
-        for(int i=0; i<size; i++){
-            for(int j = 0; j<LSBI_BYTES; o++){
-                if(o%3==2){
-                    continue;
-                }
-                if(changed[PatternChange.getIndex(porterData[o])]){
-                     content[i] = (byte) (content[i] | (((porterData[o] & 0x01)^0x01) << (LSBI_BYTES - 1 - j)));
-                }else{
-                    content[i] = (byte) (content[i] | ((porterData[o] & 0x01) << (LSBI_BYTES - 1 - j)));
-                }
-                j++;
-            }
+        for(int i=0; i<size; i++, o+=LSBI_BYTES){
+            content[i] = recoverByte(porterData, o, patternChanges, changed);
         }
         ans.setContent(content);
 
@@ -133,18 +157,8 @@ public class LSBI implements Algorithm{
             StringBuilder builder = new StringBuilder();
             byte last = 0;
             do{
-                last = 0;
-                for(int j=0; j < LSBI_BYTES; o++){
-                    if(o%3==2){
-                        continue;
-                    }
-                    if(changed[PatternChange.getIndex(porterData[o])]){
-                        last = (byte) (last | (((porterData[o] & 0x01)^0x01) << (LSBI_BYTES - 1 - j)));
-                    }else{
-                        last = (byte) (last | (((porterData[o] & 0x01)) << (LSBI_BYTES - 1 - j)));
-                    }
-                    j++;
-                }
+                last = recoverByte(porterData, o, patternChanges, changed);
+                o+=LSBI_BYTES;
                 if(last!=0){
                     builder.append((char) last);
                 }
@@ -163,31 +177,80 @@ public class LSBI implements Algorithm{
         return bmp.getData().length / (4 * 3);
     }
 
-
-    @Getter
-    private static class PatternChange{
-        int count=0;
+    private static class PatternChange {
+        int count = 0;
         int changed = 0;
-        String pattern;
-        public PatternChange( String pattern) {
+        @Getter
+        final byte pattern;
+
+        public PatternChange(byte pattern) {
             this.pattern = pattern;
         }
 
-        public boolean mustShift(){
-            return (changed/((double)count) ) > 0.5; //TODO: revisar si 0.5
+        public boolean mustShift() {
+            return (changed / ((double) count)) > 0.5; //TODO: revisar si 0.5
         }
 
-        public void incrementCount(){
+        public void incrementCount() {
             count++;
         }
 
-        public void incrementChanged(){
+        public void incrementChanged() {
             changed++;
         }
+    }
 
-        public static int getIndex(byte b){
-            return (b & 0x06)>>1;
+    private static class PatternChanges {
+
+        private final Map<Byte, PatternChange> patternChanges;
+        private final byte mask;
+
+        public PatternChanges(int mask, Iterable<Integer> patterns) {
+            this.patternChanges = new HashMap<>();
+            for (Integer pattern : patterns) {
+                byte patternByte = (byte) (pattern.byteValue() & mask);
+                this.patternChanges.put(patternByte, new PatternChange(patternByte));
+            }
+            this.mask = (byte) mask;
+        }
+
+        public PatternChange getPatternChange(byte b) {
+            byte pattern = (byte) (b & mask);
+            if (!patternChanges.containsKey(pattern)) {
+                throw new IllegalArgumentException("Pattern not found");
+            }
+            return patternChanges.get(pattern);
+        }
+
+        public Iterable<PatternChange> getPatternChanges() {
+            return patternChanges.values();
         }
     }
+
+//    @Getter
+//    private static class PatternChange{
+//        int count=0;
+//        int changed = 0;
+//        String pattern;
+//        public PatternChange( String pattern) {
+//            this.pattern = pattern;
+//        }
+//
+//        public boolean mustShift(){
+//            return (changed/((double)count) ) > 0.5; //TODO: revisar si 0.5
+//        }
+//
+//        public void incrementCount(){
+//            count++;
+//        }
+//
+//        public void incrementChanged(){
+//            changed++;
+//        }
+//
+//        public static int getIndex(byte b){
+//            return (b & 0x06)>>1;
+//        }
+//    }
 
 }
