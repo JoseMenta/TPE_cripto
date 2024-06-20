@@ -37,7 +37,6 @@ public class LSBI implements Algorithm {
         final byte[] ansContent = Arrays.copyOf(bmp.getData(), bmp.getData().length);
         final byte[] payloadContent = payload.getBinary();
         final PatternChanges patternChanges = new PatternChanges(MASK, PATTERNS);
-        // final PatternChange[] patternChanges = new PatternChange[]{new PatternChange("00"),new PatternChange("01"),new PatternChange("10"), new PatternChange("11")};
         int o = 4; //Dejamos el espacio para guardar con LSB1
         for(int i=0; o<bmp.getData().length && i<payloadContent.length;i++) {
             byte infoByte = payloadContent[i];
@@ -49,12 +48,9 @@ public class LSBI implements Algorithm {
                 ansContent[o] = (byte) ((ansContent[o] & 0XFE) | ((infoByte >> (LSBI_BYTES - 1 -j)) & 0x01));
                 byte curr = getLSB(ansContent[o]);
                 PatternChange patternChange = patternChanges.getPatternChange(ansContent[o]);
-                // int index = PatternChange.getIndex(ansContent[o]);
                 if(prev!=curr){
-                    // patternChanges[index].incrementChanged();
                     patternChange.incrementChanged();
                 }
-                // patternChanges[index].incrementCount();
                 patternChange.incrementCount();
                 j++;
             }
@@ -67,8 +63,6 @@ public class LSBI implements Algorithm {
                     continue;
                 }
                 PatternChange patternChange = patternChanges.getPatternChange(ansContent[o]);
-                // int index = PatternChange.getIndex(ansContent[o]);
-                // if (patternChanges[index].mustShift()){
                 if (patternChange.mustShift()){
                     ansContent[o] =(byte) (ansContent[o] ^ 0x01);
                 }
@@ -84,13 +78,6 @@ public class LSBI implements Algorithm {
                 ansContent[index] = (byte) (ansContent[index] & 0xFE);
             }
         }
-//        for(int i = 0; i<PATTERN_COUNT; i++){
-//            if(patternChanges[i].mustShift()){
-//                ansContent[i] = (byte) (ansContent[i] | 0x01);
-//            }else{
-//                ansContent[i] = (byte) (ansContent[i] & 0xFE);
-//            }
-//        }
 
          return new BMP(bmp.getSize(),ansContent,bmp.getHeader());
     }
@@ -119,12 +106,9 @@ public class LSBI implements Algorithm {
         }
 
         ByteRecoverIterator iterator = new ByteRecoverIterator(porterData, patternChanges, changed, o);
-        final byte[] sizeBinary = iterator.nextNBytes(Integer.BYTES);
+
         //Read size
-        //final byte[] sizeBinary = new byte[Integer.BYTES];
-        //for(int i=0; i<Integer.BYTES; i++, o+=BMP_BYTES_PER_PAYLOAD_BYTE){
-        //    sizeBinary[i] = recoverByte(porterData, o, patternChanges, changed);
-        //}
+        final byte[] sizeBinary = iterator.nextNBytes(Integer.BYTES);
         ans.setSize(sizeBinary);
 
         //Read content
@@ -134,10 +118,6 @@ public class LSBI implements Algorithm {
             throw new IllegalArgumentException("Can't read content from porter");
         }
         final byte[] content = iterator.nextNBytes(size);
-        //final byte [] content = new byte[size];
-        //for(int i=0; i<size; i++, o+=BMP_BYTES_PER_PAYLOAD_BYTE){
-        //    content[i] = recoverByte(porterData, o, patternChanges, changed);
-        //}
         ans.setContent(content);
 
         //Read extension
@@ -147,8 +127,6 @@ public class LSBI implements Algorithm {
             byte last = 0;
             do{
                 last = iterator.next();
-                //last = recoverByte(porterData, o, patternChanges, changed);
-                //o+=BMP_BYTES_PER_PAYLOAD_BYTE;
                 if(last!=0){
                     builder.append((char) last);
                 }
@@ -262,31 +240,4 @@ public class LSBI implements Algorithm {
             return ans;
         }
     }
-
-//    @Getter
-//    private static class PatternChange{
-//        int count=0;
-//        int changed = 0;
-//        String pattern;
-//        public PatternChange( String pattern) {
-//            this.pattern = pattern;
-//        }
-//
-//        public boolean mustShift(){
-//            return (changed/((double)count) ) > 0.5; //TODO: revisar si 0.5
-//        }
-//
-//        public void incrementCount(){
-//            count++;
-//        }
-//
-//        public void incrementChanged(){
-//            changed++;
-//        }
-//
-//        public static int getIndex(byte b){
-//            return (b & 0x06)>>1;
-//        }
-//    }
-
 }
