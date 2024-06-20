@@ -157,7 +157,10 @@ public class LSBI implements Algorithm{
 
     @Override
     public int getMaxLength(BMP bmp) {
-        return Integer.MAX_VALUE;//TODO
+        // As we only use the blue and green channels, we can store 2 bits per pixel
+        // So for every 3 bytes we can only use 2 bytes, that is we can store 2 bits per 3 bytes
+        // So for each payload byte we need 4 * 3 bytes
+        return bmp.getData().length / (4 * 3);
     }
 
 
