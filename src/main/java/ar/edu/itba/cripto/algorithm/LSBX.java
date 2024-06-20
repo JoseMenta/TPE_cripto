@@ -5,6 +5,7 @@ import ar.edu.itba.cripto.data.Payload;
 import ar.edu.itba.cripto.exceptions.InsuficientSizeException;
 
 import java.util.Arrays;
+import java.util.Iterator;
 
 public class LSBX implements Algorithm {
     private final static int BYTE_SIZE = 8;
@@ -24,7 +25,6 @@ public class LSBX implements Algorithm {
         return (int) Math.floor(bmp.getData().length / (double) bmpBytesNeededPerPayloadByte);
     }
 
-    // TODO: Fix
     @Override
     public BMP embed(BMP bmp, Payload payload) {
         if (getMaxLength(bmp) < payload.getTotalLength()) {
@@ -55,26 +55,6 @@ public class LSBX implements Algorithm {
         return new BMP(bmp.getSize(), ansContent, bmp.getHeader());
     }
 
-    // TODO: Works but better to convert it as an Iterator<byte>
-    private byte[] recoverBytes(byte[] porter, int length, int bitIndexOffset) {
-        final byte[] ans = new byte[length];
-        int bitIndex = bitIndexOffset;
-        int ansByteIndex = 0;
-        byte currentByte = 0;
-        for (; bitIndex < length * BYTE_SIZE + bitIndexOffset; bitIndex++) {
-            int porterByteIndex = bitIndex / n;
-            int porterBitIndex = bitIndex % n;
-            int nextBit = (porter[porterByteIndex] >> (n - 1 - porterBitIndex)) & 0x01;
-            currentByte <<= 1;
-            currentByte |= (byte) nextBit;
-            if (bitIndex % BYTE_SIZE == BYTE_SIZE - 1) {
-                ans[ansByteIndex++] = currentByte;
-                currentByte = 0;
-            }
-        }
-        return ans;
-    }
-
     @Override
     public Payload recover(BMP bmp, boolean withExtension) {
         final int maxLength = getMaxLength(bmp);
@@ -84,9 +64,10 @@ public class LSBX implements Algorithm {
         }
 
         final byte[] porterData = bmp.getData();
+        final ByteRecoverIterator iterator = new ByteRecoverIterator(porterData, n);
 
-        // Read the length
-        final byte[] sizeBinary = recoverBytes(porterData, Integer.BYTES, 0);
+        // Read the size
+        final byte[] sizeBinary = iterator.nextNBytes(Integer.BYTES);
         ans.setSize(sizeBinary);
         final int size = ans.getSize();
         if (size > maxLength) {
@@ -94,25 +75,77 @@ public class LSBX implements Algorithm {
         }
 
         // Read the content
-        final byte[] porterContent = recoverBytes(porterData, size, Integer.BYTES * BYTE_SIZE);
+        final byte[] porterContent = iterator.nextNBytes(size);
         ans.setContent(porterContent);
 
         // Read the extension
         if (withExtension) {
             StringBuilder builder = new StringBuilder();
-            int offset = (Integer.BYTES + size) * BYTE_SIZE;
-            while (true) {
-                byte character = recoverBytes(porterData, 1, offset)[0];
-                if (character == 0) {
-                    break;
+            byte character = 0;
+            do {
+                character = iterator.next();
+                if (character != 0) {
+                    builder.append((char) character);
                 }
-                builder.append((char) character);
-                offset += BYTE_SIZE;
-            }
+            } while (character != 0);
             ans.setExtension(builder.toString());
         } else {
             ans.setExtension(null);
         }
         return ans;
+    }
+
+    private static class ByteRecoverIterator implements Iterator<Byte> {
+        private final byte[] data;
+        private int bitIndex;
+        private final int bitsPerByte;
+
+        public ByteRecoverIterator(byte[] data, int bitsPerByte) {
+            if (bitsPerByte < 1 || bitsPerByte > 8) {
+                throw new IllegalArgumentException("Invalid bits per byte");
+            }
+            if (data == null) {
+                throw new IllegalArgumentException("Data is null");
+            }
+            this.data = data;
+            this.bitIndex = 0;
+            this.bitsPerByte = bitsPerByte;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return hasNBytes(1);
+        }
+
+        public boolean hasNBytes(int n) {
+            int totalBits = (int) Math.ceil(data.length * bitsPerByte / (double) BYTE_SIZE) * BYTE_SIZE;
+            int neededDataBits = n * BYTE_SIZE;
+            return bitIndex + neededDataBits <= totalBits;
+        }
+
+        @Override
+        public Byte next() {
+            if (!hasNext()) {
+                throw new IllegalStateException("No more elements");
+            }
+            byte ans = 0;
+            do {
+                int porterByteIndex = bitIndex / bitsPerByte;
+                int porterBitIndex = bitIndex % bitsPerByte;
+                int nextBit = (data[porterByteIndex] >> (bitsPerByte - 1 - porterBitIndex)) & 0x01;
+                ans <<= 1;
+                ans |= (byte) nextBit;
+                bitIndex++;
+            } while (bitIndex % BYTE_SIZE != 0);
+            return ans;
+        }
+
+        public byte[] nextNBytes(int n) {
+            byte[] ans = new byte[n];
+            for (int i = 0; i < n; i++) {
+                ans[i] = next();
+            }
+            return ans;
+        }
     }
 }
