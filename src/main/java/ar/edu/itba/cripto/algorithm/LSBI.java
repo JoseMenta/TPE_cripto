@@ -5,10 +5,7 @@ import ar.edu.itba.cripto.data.BMP;
 import ar.edu.itba.cripto.data.Payload;
 import ar.edu.itba.cripto.exceptions.InsuficientSizeException;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class LSBI implements Algorithm {
@@ -17,6 +14,7 @@ public class LSBI implements Algorithm {
     private static final int MASK = 0b110;
     private static final List<Integer> PATTERNS = List.of(0b000, 0b010, 0b100, 0b110);
     private static final int PATTERN_COUNT = PATTERNS.size();
+    private static final int BMP_BYTES_PER_PAYLOAD_BYTE = 4 * 3;
 
     private byte getLSB(byte b){
         return (byte) (b & 0x01);
@@ -97,19 +95,6 @@ public class LSBI implements Algorithm {
          return new BMP(bmp.getSize(),ansContent,bmp.getHeader());
     }
 
-    private byte recoverByte(byte[] porterData, int porterIndex, PatternChanges patternChanges, boolean[] changed) {
-        byte ans = 0;
-        for(int j = 0; j<LSBI_BYTES; porterIndex++, j++) {
-            if (isRedChannel(porterIndex)) {
-                continue;
-            }
-            int index = getPatternIndex(patternChanges.getPatternChange(porterData[porterIndex]).getPattern());
-            byte recoveredBit = (byte) ((porterData[porterIndex] & 0x01) ^ (changed[index] ? 0x01 : 0x00));
-            ans = (byte) (ans | (recoveredBit << (LSBI_BYTES - 1 - j)));
-        }
-        return ans;
-    }
-
     @Override
     public Payload recover(BMP bmp,boolean withExtension) {
         final PatternChanges patternChanges = new PatternChanges(MASK, PATTERNS);
@@ -132,11 +117,14 @@ public class LSBI implements Algorithm {
         if(maxLength < Integer.BYTES){
             throw new IllegalArgumentException("Can't read size from porter");
         }
+
+        ByteRecoverIterator iterator = new ByteRecoverIterator(porterData, patternChanges, changed, o);
+        final byte[] sizeBinary = iterator.nextNBytes(Integer.BYTES);
         //Read size
-        final byte[] sizeBinary = new byte[Integer.BYTES];
-        for(int i=0; i<Integer.BYTES; i++, o+=LSBI_BYTES){
-            sizeBinary[i] = recoverByte(porterData, o, patternChanges, changed);
-        }
+        //final byte[] sizeBinary = new byte[Integer.BYTES];
+        //for(int i=0; i<Integer.BYTES; i++, o+=BMP_BYTES_PER_PAYLOAD_BYTE){
+        //    sizeBinary[i] = recoverByte(porterData, o, patternChanges, changed);
+        //}
         ans.setSize(sizeBinary);
 
         //Read content
@@ -145,10 +133,11 @@ public class LSBI implements Algorithm {
         if(size > maxLength){
             throw new IllegalArgumentException("Can't read content from porter");
         }
-        final byte [] content = new byte[size];
-        for(int i=0; i<size; i++, o+=LSBI_BYTES){
-            content[i] = recoverByte(porterData, o, patternChanges, changed);
-        }
+        final byte[] content = iterator.nextNBytes(size);
+        //final byte [] content = new byte[size];
+        //for(int i=0; i<size; i++, o+=BMP_BYTES_PER_PAYLOAD_BYTE){
+        //    content[i] = recoverByte(porterData, o, patternChanges, changed);
+        //}
         ans.setContent(content);
 
         //Read extension
@@ -157,8 +146,9 @@ public class LSBI implements Algorithm {
             StringBuilder builder = new StringBuilder();
             byte last = 0;
             do{
-                last = recoverByte(porterData, o, patternChanges, changed);
-                o+=LSBI_BYTES;
+                last = iterator.next();
+                //last = recoverByte(porterData, o, patternChanges, changed);
+                //o+=BMP_BYTES_PER_PAYLOAD_BYTE;
                 if(last!=0){
                     builder.append((char) last);
                 }
@@ -174,7 +164,7 @@ public class LSBI implements Algorithm {
         // As we only use the blue and green channels, we can store 2 bits per pixel
         // So for every 3 bytes we can only use 2 bytes, that is we can store 2 bits per 3 bytes
         // So for each payload byte we need 4 * 3 bytes
-        return bmp.getData().length / (4 * 3);
+        return bmp.getData().length / BMP_BYTES_PER_PAYLOAD_BYTE;
     }
 
     private static class PatternChange {
@@ -224,6 +214,52 @@ public class LSBI implements Algorithm {
 
         public Iterable<PatternChange> getPatternChanges() {
             return patternChanges.values();
+        }
+    }
+
+    private class ByteRecoverIterator implements Iterator<Byte> {
+
+        private final byte[] porterData;
+        private int porterIndex;
+        private final PatternChanges patternChanges;
+        private final boolean[] changed;
+
+        public ByteRecoverIterator(byte[] porterData, PatternChanges patternChanges, boolean[] changed, int initialIndex) {
+            this.porterData = porterData;
+            this.porterIndex = initialIndex;
+            this.patternChanges = patternChanges;
+            this.changed = changed;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return this.porterIndex + BMP_BYTES_PER_PAYLOAD_BYTE <= this.porterData.length;
+        }
+
+        @Override
+        public Byte next() {
+            if (!hasNext()) {
+                throw new IllegalStateException("No more bytes to read");
+            }
+            byte ans = 0;
+            for (int j = 0; j < LSBI_BYTES; this.porterIndex++) {
+                if (isRedChannel(this.porterIndex)) {
+                    continue;
+                }
+                int index = getPatternIndex(this.patternChanges.getPatternChange(this.porterData[this.porterIndex]).getPattern());
+                byte recoveredBit = (byte) ((this.porterData[this.porterIndex] & 0x01) ^ (this.changed[index] ? 0x01 : 0x00));
+                ans = (byte) (ans | (recoveredBit << (LSBI_BYTES - 1 - j)));
+                j++;
+            }
+            return ans;
+        }
+
+        public byte[] nextNBytes(int n) {
+            byte[] ans = new byte[n];
+            for (int i = 0; i < n; i++) {
+                ans[i] = next();
+            }
+            return ans;
         }
     }
 
