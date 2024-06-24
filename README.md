@@ -43,17 +43,17 @@ Para ejecutar el programa, primero se debe extraer el script del archivo comprim
 ### Ocultamiento
 
 El ejecutable acepta los siguientes argumentos:
-- `-Din <path>`: Path al archivo que se va a ocultar (sólo para ocultar).
-- `-Dp <path>`: Path al archivo bmp portador.
-- `-Dout <path>`: Path al archivo de salida (bmp con la información incrustada).
-- `-Dsteg <LSB1 | LSB4 | LSBI>`: Algoritmo de esteganografiado.
-- `-Da <aes128 | aes192 | aes256 | des>`: Primitiva utilizada (el default es `aes128`).
-- `-Dm <ecb | cfb | ofb | cbc> `: Modo de encadenamiento (el default es `cbc`).
-- `-Dpass <password>`: Password de encriptación. Si no se pasa, entonces no se encripta el contenido.
+- `-Din=<path>`: Path al archivo que se va a ocultar (sólo para ocultar).
+- `-Dp=<path>`: Path al archivo bmp portador.
+- `-Dout=<path>`: Path al archivo de salida (bmp con la información incrustada).
+- `-Dsteg=<LSB1 | LSB4 | LSBI>`: Algoritmo de esteganografiado.
+- `-Da=<aes128 | aes192 | aes256 | des>`: Primitiva utilizada (el default es `aes128`).
+- `-Dm=<ecb | cfb | ofb | cbc> `: Modo de encadenamiento (el default es `cbc`).
+- `-Dpass=<password>`: Password de encriptación. Si no se pasa, entonces no se encripta el contenido.
 
 Con esto, se puede ejecutar el programa de la siguiente manera:
 ```bash
-./stegobmp.sh -Dembed -Din <path> -Dp <path> -Dout <path> -Dsteg=<LSB1 | LSB4 | LSBI> -Dpass=<pass> -Da=<aes128 | aes192 | aes256 | des> -Dm= <ecb | cfb | ofb | cbc>
+./stegobmp.sh -Dembed -Din=<path> -Dp=<path> -Dout=<path> -Dsteg=<LSB1 | LSB4 | LSBI> -Dpass=<pass> -Da=<aes128 | aes192 | aes256 | des> -Dm=<ecb | cfb | ofb | cbc>
 ```
 Por ejemplo
 ```bash
@@ -64,16 +64,16 @@ Por ejemplo
 ### Extracción 
 
 El ejecutable acepta los siguientes argumentos:
-- `-Dp <path>`: Path al archivo bmp portador.
-- `-Dout <path>`: Path al archivo de salida (no se debe especificar la extensión).
-- `-Dsteg <LSB1 | LSB4 | LSBI>`: Algoritmo de esteganografiado.
-- `-Da <aes128 | aes192 | aes256 | des>`: Primitiva utilizada (el default es `aes128`).
-- `-Dm <ecb | cfb | ofb | cbc> `: Modo de encadenamiento (el default es `cbc`).
-- `-Dpass <password>`: Password de encriptación. Si no se pasa, entonces no se encripta el contenido.
+- `-Dp=<path>`: Path al archivo bmp portador.
+- `-Dout=<path>`: Path al archivo de salida (no se debe especificar la extensión).
+- `-Dsteg=<LSB1 | LSB4 | LSBI>`: Algoritmo de esteganografiado.
+- `-Da=<aes128 | aes192 | aes256 | des>`: Primitiva utilizada (el default es `aes128`).
+- `-Dm=<ecb | cfb | ofb | cbc> `: Modo de encadenamiento (el default es `cbc`).
+- `-Dpass=<password>`: Password de encriptación. Si no se pasa, entonces no se encripta el contenido.
 
 Con esto, se puede ejecutar el programa de la siguiente manera:
 ```bash
-./stegobmp.sh -Dextract  -Dp <path> -Dout <path> -Dsteg=<LSB1 | LSB4 | LSBI> -Dpass=<pass> -Da=<aes128 | aes192 | aes256 | des> -Dm= <ecb | cfb | ofb | cbc>
+./stegobmp.sh -Dextract  -Dp=<path> -Dout=<path> -Dsteg=<LSB1 | LSB4 | LSBI> -Dpass=<pass> -Da=<aes128 | aes192 | aes256 | des> -Dm=<ecb | cfb | ofb | cbc>
 ```
 Por ejemplo
 ```bash

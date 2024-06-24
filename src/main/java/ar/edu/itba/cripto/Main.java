@@ -8,6 +8,7 @@ import ar.edu.itba.cripto.crypt.PBKDF2;
 import ar.edu.itba.cripto.data.BMP;
 import ar.edu.itba.cripto.data.Pair;
 import ar.edu.itba.cripto.data.Payload;
+import ar.edu.itba.cripto.exceptions.InsufficientSizeException;
 import ar.edu.itba.cripto.input.BlockInput;
 import ar.edu.itba.cripto.input.CipherInput;
 import ar.edu.itba.cripto.input.SteganographyInput;
@@ -77,8 +78,13 @@ public class Main {
             }else {
                 payload = Payload.of(inputPath);
             }
-            final BMP outBmp = algorithm.embed(porterBmp, payload);
-            outBmp.writeToFile(Path.of(output));
+            try{
+                final BMP outBmp = algorithm.embed(porterBmp, payload);
+                outBmp.writeToFile(Path.of(output));
+            }catch (InsufficientSizeException e){
+                System.err.println(e.getMessage());
+                throw e;
+            }
         }else if (System.getProperty(EXTRACT_FLAG) != null) {
             Payload outPayload = algorithm.recover(porterBmp, password.isEmpty());//extension is needed if password==null, because it is not encripted
             //Si tiene que desencriptar, lo tiene que hacer sobre el payload recuperado
@@ -98,7 +104,5 @@ public class Main {
         } else {
             throw new IllegalArgumentException("Flag is missing");
         }
-
-        System.out.println("Hello world!");
     }
 }

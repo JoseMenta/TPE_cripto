@@ -2,7 +2,7 @@ package ar.edu.itba.cripto.algorithm;
 
 import ar.edu.itba.cripto.data.BMP;
 import ar.edu.itba.cripto.data.Payload;
-import ar.edu.itba.cripto.exceptions.InsuficientSizeException;
+import ar.edu.itba.cripto.exceptions.InsufficientSizeException;
 
 import java.util.Arrays;
 
@@ -28,7 +28,7 @@ public class LSBX implements Algorithm {
     @Override
     public BMP embed(BMP bmp, Payload payload) {
         if (getMaxLength(bmp) < payload.getTotalLength()) {
-            throw new InsuficientSizeException();
+            throw new InsufficientSizeException(getMaxLength(bmp));
         }
         final byte[] ansContent = Arrays.copyOf(bmp.getData(), bmp.getData().length);
         final byte[] payloadContent = payload.getBinary();

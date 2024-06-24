@@ -3,7 +3,7 @@ package ar.edu.itba.cripto.algorithm;
 import lombok.Getter;
 import ar.edu.itba.cripto.data.BMP;
 import ar.edu.itba.cripto.data.Payload;
-import ar.edu.itba.cripto.exceptions.InsuficientSizeException;
+import ar.edu.itba.cripto.exceptions.InsufficientSizeException;
 
 import java.util.Arrays;
 
@@ -18,7 +18,7 @@ public class LSBI implements Algorithm{
     @Override
     public BMP embed(BMP bmp, Payload payload) {
         if(getMaxLength(bmp) < payload.getTotalLength()){
-            throw new InsuficientSizeException();
+            throw new InsufficientSizeException(getMaxLength(bmp));
         }
         final byte[] ansContent = Arrays.copyOf(bmp.getData(), bmp.getData().length);
         final byte[] payloadContent = payload.getBinary();
@@ -157,7 +157,7 @@ public class LSBI implements Algorithm{
 
     @Override
     public int getMaxLength(BMP bmp) {
-        return Integer.MAX_VALUE;//TODO
+        return (int) Math.floor((bmp.getData().length-4)/12.0); //(2/3)*(1/8)
     }
 
 
