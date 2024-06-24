@@ -55,7 +55,6 @@ public class LSBX implements Algorithm {
         return new BMP(bmp.getSize(), ansContent, bmp.getHeader());
     }
 
-    // TODO: Works but better to convert it as an Iterator<byte>
     private byte[] recoverBytes(byte[] porter, int length, int bitIndexOffset) {
         final byte[] ans = new byte[length];
         int bitIndex = bitIndexOffset;
@@ -89,7 +88,7 @@ public class LSBX implements Algorithm {
         final byte[] sizeBinary = recoverBytes(porterData, Integer.BYTES, 0);
         ans.setSize(sizeBinary);
         final int size = ans.getSize();
-        if (size > maxLength) {
+        if (size > maxLength - Integer.BYTES) {
             throw new IllegalArgumentException("Can't read content from porter");
         }
 

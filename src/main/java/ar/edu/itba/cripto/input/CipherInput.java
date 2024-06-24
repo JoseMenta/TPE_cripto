@@ -10,7 +10,7 @@ public enum CipherInput {
     AES_128("aes128",128,16,CryptAlgorithm.AES),
     AES_192("aes192",192,16,CryptAlgorithm.AES),
     AES_256("aes256",256,16,CryptAlgorithm.AES),
-    DES("des",192,8,CryptAlgorithm.TRIPLE_DES); //TODO: revisar length
+    DES("des",192,8,CryptAlgorithm.TRIPLE_DES);
 
     private final String inputName;
     private final int keyLength; //in bits

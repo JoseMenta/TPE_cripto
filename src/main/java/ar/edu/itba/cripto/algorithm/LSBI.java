@@ -72,11 +72,11 @@ public class LSBI implements Algorithm{
 
     @Override
     public Payload recover(BMP bmp,boolean withExtension) {
-//        int maxLength = Integer.MAX_VALUE;//TODO
+
         final Payload ans = new Payload();
-//        if(maxLength < PATTERN_COUNT){ //No puede almacenar los patrones
-//            throw new IllegalArgumentException("Can't read patterns from porter");
-//        }
+        if(bmp.getData().length < PATTERN_COUNT){ //No puede almacenar los patrones
+            throw new IllegalArgumentException("Can't read patterns from porter");
+        }
         final byte[] porterData = bmp.getData();
         boolean[] changed = new boolean[PATTERN_COUNT];
         for(int i = 0; i<PATTERN_COUNT; i++){
@@ -86,11 +86,11 @@ public class LSBI implements Algorithm{
                 changed[i] = false;
             }
         }
+        int maxLength = getMaxLength(bmp); //maxLength does not consider the pattern bytes
         int o = 4;
-//        maxLength -= PATTERN_COUNT;
-//        if(maxLength < Integer.BYTES){
-//            throw new IllegalArgumentException("Can't read size from porter");
-//        }
+        if(maxLength < Integer.BYTES){
+            throw new IllegalArgumentException("Can't read size from porter");
+        }
         //Read size
         final byte[] sizeBinary = new byte[Integer.BYTES];
         for(int i=0; i<Integer.BYTES; i++){
@@ -110,7 +110,10 @@ public class LSBI implements Algorithm{
 
         //Read content
         final int size = ans.getSize();
-//        maxLength -= Integer.BYTES * LSBI_BYTES;
+        maxLength -= Integer.BYTES;
+        if(maxLength < size){
+            throw new IllegalArgumentException("Can't read content from porter");
+        }
         final byte [] content = new byte[size];
         for(int i=0; i<size; i++){
             for(int j = 0; j<LSBI_BYTES; o++){
@@ -171,7 +174,7 @@ public class LSBI implements Algorithm{
         }
 
         public boolean mustShift(){
-            return (changed/((double)count) ) > 0.5; //TODO: revisar si 0.5
+            return (changed/((double)count) ) > 0.5;
         }
 
         public void incrementCount(){
