@@ -82,7 +82,7 @@ Por ejemplo
 
 
 ## Aclaraciones sobre el proyecto
-Este proyecto es realizado para la materia Programación de Objetos Distribuidos del ITBA.
+Este proyecto es realizado para la materia Criptografía y Seguridad del ITBA.
 **Los integrantes del grupo son:**
 - 62041 - [Martín Hecht](https://github.com/martinhecht01)
 - 62248 - [José Rodolfo Mentasti](https://github.com/JoseMenta)
